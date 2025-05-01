@@ -8,6 +8,7 @@ CREATE TABLE Customers (
     PaymentTerms   VARCHAR(50), -- Cash, Credit, Partial
     TotalCredit    DECIMAL(10,2) DEFAULT 0,
 	CreditBalance  DECIMAL(10,2) DEFAULT 0, -- updated automatically
+    EntityType   VARCHAR(50) NOT NULL CHECK (EntityType IN ('Customer', 'Supplier')) DEFAULT 'Customer',
     [IsActive]            BIT            NOT NULL DEFAULT 1,
     [CreatedBy]           NVARCHAR (100) NULL,
     [CreatedDate]         DATETIME       NOT NULL DEFAULT GetDate(),

@@ -70,4 +70,13 @@
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Tables\Fruit.sql" />
+    <None Include="Tables\Truck.sql" />
+    <None Include="Tables\Supply.sql" />
+    <None Include="Tables\Payment.sql" />
+    <None Include="Tables\PaymentAllocation.sql" />
+    <None Include="Tables\Order.sql" />
+    <None Include="Tables\OrderSupplies.sql" />
+  </ItemGroup>
 </Project>
