@@ -101,7 +101,7 @@ namespace Services.ServicesImpl
 
             var userClaims = _context.HttpContext.User;
 
-            string claimValue = userClaims.FindFirst(claim => claim.Type == claimType).Value;
+            string claimValue = userClaims.FindFirst(claim => claim.Type == claimType)?.Value;
 
             if (string.IsNullOrWhiteSpace(claimValue))
                 throw new UnauthorizedAccessException();
@@ -137,10 +137,12 @@ namespace Services.ServicesImpl
             var claims = new Claim[]
             {
                 new Claim(JwtRegisteredClaimNames.Sid, userModel.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Sub, userModel.UserName == null ? userModel.Email : userModel.UserName),
+                new Claim(ClaimType.Custom_Sub, userModel.UserName == null ? userModel.Email : userModel.UserName),
                 new Claim(JwtRegisteredClaimNames.Email, userModel.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Iat, Utilities.ToUnixEpochDate(dateTime).ToString(), ClaimValueTypes.Integer64)
+                new Claim(JwtRegisteredClaimNames.Iat, Utilities.ToUnixEpochDate(dateTime).ToString(), ClaimValueTypes.Integer64),
+                //new Claim(JwtRegisteredClaimNames.Iss, "Intellliro"),
+                //new Claim(JwtRegisteredClaimNames.Aud, "YourAudienceHere"),
             };
 
             return await Task.FromResult(claims);

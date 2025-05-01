@@ -19,63 +19,6 @@ namespace Repositories.RepositoriesImpl
             _context = context;
         }
 
-        #region Client
-        public async Task<Client> AddClient(Client clientEntity)
-        {
-            var client = _context.Client.Add(clientEntity);
-            return await Task.FromResult(client.Entity);
-        }
-        public async Task<List<Client>> GetAllClients()
-        {
-            var clients = await _context.Set<Client>().ToListAsync();
-            return clients;
-        }
-
-        public async Task<Client> GetClient(int clientId)
-        {
-            var client = await _context.Set<Client>().FirstOrDefaultAsync(x => x.Id == clientId && x.IsActive == true);
-            return client;
-        }
-
-        public async Task<Client> GetClientByName(string clientName)
-        {
-            var client = await _context.Set<Client>().FirstOrDefaultAsync(x => x.Name == clientName);
-            return client;
-        }
-
-
-        #endregion
-
-
-        #region Consumer
-        public async Task<Consumer> AddConsumer(Consumer consumerEntity)
-        {
-            var consumer = _context.Consumer.Add(consumerEntity);
-            return await Task.FromResult(consumer.Entity);
-        }
-        public async Task<List<Consumer>> GetAllConsumers()
-        {
-            var consumers = await _context.Set<Consumer>().ToListAsync();
-            return consumers;
-        }
-        public async Task<Consumer> GetConsumer(int consumerId)
-        {
-            var consumer = await _context.Set<Consumer>().FirstOrDefaultAsync(x => x.Id == consumerId && x.IsActive == true);
-            return consumer;
-        }
-        public async Task<Consumer> GetConsumerForUpdate(int consumerId)
-        {
-            var consumer = await _context.Set<Consumer>().FirstOrDefaultAsync(x => x.Id == consumerId);
-            return consumer;
-        }
-
-        public async Task<Consumer> GetConsumerByName(string consumerName)
-        {
-            var consumer = await _context.Set<Consumer>().FirstOrDefaultAsync(x => x.FirstName == consumerName);
-            return consumer;
-        }
-        #endregion
-
         #region Customer
         public async Task<Customer> AddCustomer(Customer customerEntity)
         {
@@ -100,6 +43,11 @@ namespace Repositories.RepositoriesImpl
             return Customer;
         }
 
+        public async Task<List<Customer>> GetCustomers(bool isActive)
+        {
+            var Customers = await _context.Set<Customer>().Where(x => x.IsActive == isActive).ToListAsync();
+            return Customers;
+        }
 
         #endregion
     }

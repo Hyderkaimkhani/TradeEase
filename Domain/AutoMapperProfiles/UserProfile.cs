@@ -11,7 +11,7 @@ namespace Domain.AutoMapperProfiles
         {
             CreateMap<UserModel, User>().ReverseMap();
             CreateMap<AddUserRequestModel, User>().ReverseMap();
-            CreateMap<AppTokenRequestModel, AppToken>().ReverseMap();
+            CreateMap<UserRoleModel, UserRole>().ReverseMap();
         }
     }
 }

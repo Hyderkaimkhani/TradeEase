@@ -1,6 +1,8 @@
 ﻿using AutoMapper;
 using Domain.Entities;
 using Domain.Models;
+using Domain.Models.RequestModel;
+using Domain.Models.ResponseModel;
 
 namespace Domain.AutoMapperProfiles
 {
@@ -8,11 +10,8 @@ namespace Domain.AutoMapperProfiles
     {
         public AdminProfile()
         {
-            CreateMap<ClientModel, Client>().ReverseMap();
-            CreateMap<Client, ClientModel>().ReverseMap();
-            CreateMap<CustomerModel, Customer>().ReverseMap();
-            CreateMap<Customer, CustomerModel>().ReverseMap();
-            CreateMap<Consumer, ConsumerModel>().ReverseMap();
+            CreateMap<CustomerAddModel, Customer>().ReverseMap();
+            CreateMap<Customer, CustomerResponseModel>().ReverseMap();
         }
     }
 }

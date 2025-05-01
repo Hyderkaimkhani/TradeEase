@@ -50,4 +50,10 @@ namespace Common
         public const string GetSpeedLimit = "unit/get_report_settings&params=";
         public const string AddUpdateGeofence = "resource/update_zone&params=";
     }
+
+    // Introduce because .net was converting JwtRegisteredClaimNames.sub to http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier
+    public static class ClaimType
+    {
+        public const string Custom_Sub = "custom_sub";
+    }
 }

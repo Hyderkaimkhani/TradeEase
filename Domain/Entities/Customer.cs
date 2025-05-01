@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Entities
 {
-    public class Customer
+    public class Customer : AuditableEntity
     {
         public int Id { get; set; }
 
@@ -32,17 +30,12 @@ namespace Domain.Entities
         [Column(TypeName = "decimal(10,2)")]
         public decimal? CreditBalance { get; set; } = 0;
 
-        public bool IsActive { get; set; } = true;
+        public Customer()
+        {
+            Name = string.Empty;
+            Phone = string.Empty;
+        }
 
-        [MaxLength(100)]
-        public string? CreatedBy { get; set; }
-
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
-
-        [MaxLength(100)]
-        public string? UpdatedBy { get; set; }
-
-        public DateTime UpdatedDate { get; set; } = DateTime.Now;
     }
 
 }

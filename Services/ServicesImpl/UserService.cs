@@ -196,8 +196,7 @@ namespace Services.ServicesImpl
                 else
                 {
                     user.Password = Utilities.MD5Hash(request.NewPassword + _configuration.GetSection("RandomPasswordSeed").Value);
-                    user.UpdatedDate = DateTime.Now;
-                    user.UpdatedBy = await _tokenService.GetClaimFromToken(JwtRegisteredClaimNames.Sub);
+                    user.UpdatedBy = await _tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
 
 
                     if (await unitOfWork.SaveChangesAsync())
@@ -209,45 +208,6 @@ namespace Services.ServicesImpl
             }
         }
 
-        public async Task<ResponseModel<bool>> AddAppToken(AppTokenRequestModel requestModel)
-        {
-            var response = new ResponseModel<bool>();
-            using (var unitOfWork = _unitOfWorkFactory.CreateUnitOfWork())
-            {
-                if (await unitOfWork.UserRepository.TokenExist(requestModel.ResourceId, requestModel.Token))
-                {
-                    //response.IsError = true;
-                    response.Message = "Token already exists";
-                }
-                else
-                {
-                    var appToken = _autoMapper.Map<AppToken>(requestModel);
-
-
-                    appToken.IsActive = true;
-                    appToken.CreatedBy = await _tokenService.GetClaimFromToken(JwtRegisteredClaimNames.Sub);
-                    appToken.CreatedDate = DateTime.Now;
-                    appToken.UpdatedBy = await _tokenService.GetClaimFromToken(JwtRegisteredClaimNames.Sub);
-                    appToken.UpdatedDate = DateTime.Now;
-
-                    var result = await unitOfWork.UserRepository.AddAppToken(appToken);
-                    if (result != null)
-                    {
-                        if (await unitOfWork.SaveChangesAsync())
-                        {
-                            response.Message = "Token added successfuly";
-                        }
-                    }
-                    else
-                    {
-                        response.IsError = true;
-                        response.Message = "Unable to add Token";
-                    }
-
-                }
-
-                return response;
-            }
-        }
+        
     }
 }

@@ -14,6 +14,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using Api.Middleware;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +27,7 @@ TokenValidationParameters tokenValidationParameters;
 builder.Host.UseSerilog((ctx, lc) => lc
 .ReadFrom.Configuration(ctx.Configuration)
 .WriteTo.Console()
-    .WriteTo.File($"{logDirectory}/TradeEase-api.txt",
+    .WriteTo.File($"{logDirectory}/TradeEase-Api-.txt",
         rollingInterval: RollingInterval.Day,
         retainedFileCountLimit: 14,
         buffered: true,
@@ -105,12 +106,12 @@ tokenValidationParameters = new TokenValidationParameters
     //Require Expiraion Time
     RequireExpirationTime = false,
 
-    SignatureValidator = delegate (string token, TokenValidationParameters parameters)
-    {
-        var jwt = new JwtSecurityToken(token);
+    //SignatureValidator = delegate (string token, TokenValidationParameters parameters)
+    //{
+    //    var jwt = new JwtSecurityToken(token);
 
-        return jwt;
-    },
+    //    return jwt;
+    //},
 
     // If you want to allow a certain amount of clock drift, set that here:
     ClockSkew = TimeSpan.Zero,
@@ -127,6 +128,21 @@ builder.Services.AddAuthentication(options =>
 .AddJwtBearer(options =>
 {
     options.TokenValidationParameters = tokenValidationParameters;
+
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine("Token authentication failed: " + context.Exception.Message);
+            return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            Console.WriteLine("Token challenge triggered: " + context.ErrorDescription);
+            return Task.CompletedTask;
+        }
+    };
+
     var validator = options.SecurityTokenValidators.OfType<JwtSecurityTokenHandler>().SingleOrDefault();
     validator.InboundClaimTypeMap.Clear();
 });
@@ -134,9 +150,40 @@ builder.Services.AddAuthentication(options =>
 #endregion
 
 builder.Services.AddControllers();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+
+    // JWT Bearer Authentication setup for Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter 'Bearer' [space] and then your valid token.\nExample: \"Bearer abc123\""
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
+
 builder.Services.AddHttpContextAccessor();
 var app = builder.Build();
 

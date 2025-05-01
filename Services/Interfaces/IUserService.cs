@@ -12,7 +12,6 @@ namespace Services.Interfaces
         Task<ResponseModel<UserModel>> GetUser(int userId);
         Task<ResponseModel<UserModel>> GetUserFromToken();
         Task<ResponseModel<string>> ChangePassword(ChangePasswordRequestModel request);
-        Task<ResponseModel<bool>> AddAppToken(AppTokenRequestModel requestModel);
 
     }
 }

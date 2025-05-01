@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Threading.Tasks;
-using Domain.Models;
+﻿using Domain.Models;
 using Domain.Models.RequestModel;
-using Domain.Models;
-using Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Services.Interfaces;
 
 namespace API.Controllers
 {
@@ -26,7 +19,6 @@ namespace API.Controllers
             _tokenService = tokenService;
         }
 
-        //[Obsolete]
         [HttpPost()]
         public async Task<IActionResult> AddUser([FromBody] AddUserRequestModel requestModel)
         {
@@ -55,17 +47,6 @@ namespace API.Controllers
             }
 
             return Ok(responseTokenModel);
-        }
-
-        [Authorize]
-        [HttpPost("AppToken")]
-        public async Task<IActionResult> AddAppToken(AppTokenRequestModel requestModel)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest("One or more required parameters not passed.");
-
-            var response = await _userService.AddAppToken(requestModel);
-            return Ok(response);
         }
 
         [Authorize]

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-
-namespace Domain.Entities
+﻿namespace Domain.Entities
 {
-    public class User
+    public class User : AuditableEntity
     {
         public int Id { get; set; }
         public string FirstName { get; set; }
@@ -22,12 +18,16 @@ namespace Domain.Entities
         public DateTime? LastLogin { get; set; }
         public DateTime? ExpirationDate { get; set; }
         public string Status { get; set; }
-        public bool? IsActive { get; set; }
-        public string CreatedBy { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public string UpdatedBy { get; set; }
-        public DateTime UpdatedDate { get; set; }
 
         public virtual UserRole UserRole { get; set; }
+
+        public User()
+        {
+            FirstName = string.Empty;
+            Email = string.Empty;
+            Password = string.Empty;
+            Status = string.Empty;
+            UserRole = new UserRole();
+        }
     }
 }

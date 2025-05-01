@@ -21,8 +21,6 @@ namespace Repositories.Context
         public virtual DbSet<User> User { get; set; }
         public virtual DbSet<UserRole> UserRole { get; set; }
         public virtual DbSet<UserAuth> UserAuth { get; set; }
-        public virtual DbSet<Client> Client { get; set; }
-        public virtual DbSet<Consumer> Consumer { get; set; }
         public virtual DbSet<Customer> Customer { get; set; }
         public virtual DbSet<AppToken> AppToken { get; set; }
 

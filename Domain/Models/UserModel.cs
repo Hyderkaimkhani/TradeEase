@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Domain.Models
+﻿namespace Domain.Models
 {
     public class UserModel
     {
@@ -12,10 +8,7 @@ namespace Domain.Models
         public string UserName { get; set; }
         public string Email { get; set; }
         public int ParentId { get; set; }
-        public long? WialonUnitId { get; set; }
-        public string WialonUniqueId { get; set; }
-        public long? WialonUserId { get; set; }
-        public string Token { get; set; }
+
       //  public string ProfilePicturePath { get; set; }
       //  public string Password { get; set; }
         public string PhoneNumber { get; set; }
@@ -28,6 +21,5 @@ namespace Domain.Models
 
         public UserRoleModel UserRole { get; set; }
 
-        public List<UnitModel> Units { get; set; }
     }
 }

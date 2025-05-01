@@ -11,5 +11,10 @@ namespace Domain.Config
         {
             return JsonSerializer.Serialize(this);
         }
+
+        public ErrorModel()
+        {
+            ErrorMessage = string.Empty;
+        }
     }
 }

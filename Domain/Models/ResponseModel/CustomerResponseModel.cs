@@ -17,6 +17,16 @@
         public decimal TotalCredit { get; set; }
 
         public decimal? CreditBalance { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public CustomerResponseModel()
+        {
+            Name = string.Empty;
+            Phone = string.Empty;
+            City = string.Empty;
+            Address = string.Empty;
+        }
     }
 
 }

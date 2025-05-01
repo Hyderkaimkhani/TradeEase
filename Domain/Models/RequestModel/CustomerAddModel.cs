@@ -4,6 +4,8 @@ namespace Domain.Models.RequestModel
 {
     public class CustomerAddModel
     {
+        public int Id { get; set; }
+
         [Required, MaxLength(100)]
         public string Name { get; set; }
 
