@@ -15,15 +15,26 @@ namespace Domain.Models.RequestModel
         [MaxLength(100)]
         public string City { get; set; }
 
-        [MaxLength(255)]
+        [MaxLength(100)]
         public string? Address { get; set; }
 
-        //[MaxLength(50)]
-        //public string PaymentTerms { get; set; }
+        [Required, MaxLength(20)]
+        public string EntityType { get; set; }
+
+        [MaxLength(50)]
+        public string? PaymentTerms { get; set; }        
 
         public decimal TotalCredit { get; set; } = 0;
 
         public decimal? CreditBalance { get; set; } = 0;
+
+        public CustomerAddModel()
+        {
+            Name = string.Empty;
+            Phone = string.Empty;
+            City = string.Empty;
+            EntityType = string.Empty;
+        }
     }
 
 }

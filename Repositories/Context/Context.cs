@@ -22,6 +22,11 @@ namespace Repositories.Context
         public virtual DbSet<UserRole> UserRole { get; set; }
         public virtual DbSet<UserAuth> UserAuth { get; set; }
         public virtual DbSet<Customer> Customer { get; set; }
+        public virtual DbSet<Supply> Supply { get; set; }
+        public virtual DbSet<Supply> Order { get; set; }
+        public virtual DbSet<Truck> Truck { get; set; }
+        public virtual DbSet<Fruit> Fruit { get; set; }
+        public virtual DbSet<TruckAssignment> TruckAssignment { get; set; }
         public virtual DbSet<AppToken> AppToken { get; set; }
 
         //protected override void OnModelCreating(ModelBuilder modelBuilder)

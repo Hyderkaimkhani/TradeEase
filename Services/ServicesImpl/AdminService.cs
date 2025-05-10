@@ -12,10 +12,10 @@ namespace Services.ServicesImpl
 {
     public class AdminService : IAdminService
     {
-        private readonly IMapper _autoMapper;
-        private readonly IConfiguration _configuration;
-        private readonly IUnitOfWorkFactory _unitOfWorkFactory;
-        private readonly ITokenService _tokenService;
+        private readonly IMapper autoMapper;
+        private readonly IConfiguration configuration;
+        private readonly IUnitOfWorkFactory unitOfWorkFactory;
+        private readonly ITokenService tokenService;
 
         public AdminService(IUnitOfWorkFactory unitOfWorkFactory,
               IMapper autoMapper,
@@ -23,16 +23,16 @@ namespace Services.ServicesImpl
               ITokenService tokenService
             )
         {
-            _autoMapper = autoMapper;
-            _unitOfWorkFactory = unitOfWorkFactory;
-            _configuration = configuration;
-            _tokenService = tokenService;
+            this.autoMapper = autoMapper;
+            this.configuration = configuration;
+            this.unitOfWorkFactory = unitOfWorkFactory;
+            this.tokenService = tokenService;
         }
 
         #region Customer
         public async Task<ResponseModel<CustomerResponseModel>> AddCustomer(CustomerAddModel customerAddModel)
         {
-            using (var unitOfWork = _unitOfWorkFactory.CreateUnitOfWork())
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<CustomerResponseModel>();
 
@@ -45,12 +45,12 @@ namespace Services.ServicesImpl
                 }
                 else
                 {
-                    var customer = _autoMapper.Map<Customer>(customerAddModel);
+                    var customer = autoMapper.Map<Customer>(customerAddModel);
 
                     customer.IsActive = true;
-                    customer.CreatedBy = await _tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    customer.CreatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
                     customer.CreatedDate = DateTime.Now;
-                    customer.UpdatedBy = await _tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
                     customer.UpdatedDate = DateTime.Now;
 
                     var addedCustomer = await unitOfWork.AdminRepository.AddCustomer(customer);
@@ -58,7 +58,7 @@ namespace Services.ServicesImpl
                     {
                         await unitOfWork.SaveChangesAsync();
                         response.Message = "Customer added successfuly";
-                        response.Model = GetCustomer(customer.Id).Result.Model;
+                        response.Model = autoMapper.Map<CustomerResponseModel>(addedCustomer);
 
                     }
                     else
@@ -73,7 +73,7 @@ namespace Services.ServicesImpl
 
         public async Task<ResponseModel<CustomerResponseModel>> UpdateCustomer(CustomerAddModel customerAddModel)
         {
-            using (var unitOfWork = _unitOfWorkFactory.CreateUnitOfWork())
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<CustomerResponseModel>();
 
@@ -86,14 +86,14 @@ namespace Services.ServicesImpl
                 }
                 else
                 {
-                    _autoMapper.Map(customerAddModel, customer);
+                    autoMapper.Map(customerAddModel, customer);
 
-                    customer.UpdatedBy = await _tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
 
                     if (await unitOfWork.SaveChangesAsync())
                     {
                         response.Message = "Customer updated successfully.";
-                        response.Model = GetCustomer(customer.Id).Result.Model;
+                        response.Model = autoMapper.Map<CustomerResponseModel>(customer);
                     }
                     else
                     {
@@ -107,7 +107,7 @@ namespace Services.ServicesImpl
 
         public async Task<ResponseModel<List<CustomerResponseModel>>> GetAllCustomers()
         {
-            using (var unitOfWork = _unitOfWorkFactory.CreateUnitOfWork())
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<List<CustomerResponseModel>>();
 
@@ -120,7 +120,7 @@ namespace Services.ServicesImpl
                 }
                 else
                 {
-                    response.Model = _autoMapper.Map<List<CustomerResponseModel>>(customers);
+                    response.Model = autoMapper.Map<List<CustomerResponseModel>>(customers);
                 }
 
                 return response;
@@ -129,7 +129,7 @@ namespace Services.ServicesImpl
 
         public async Task<ResponseModel<List<CustomerResponseModel>>> GetCustomers(bool isActive)
         {
-            using (var unitOfWork = _unitOfWorkFactory.CreateUnitOfWork())
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<List<CustomerResponseModel>>();
 
@@ -142,16 +142,25 @@ namespace Services.ServicesImpl
                 }
                 else
                 {
-                    response.Model = _autoMapper.Map<List<CustomerResponseModel>>(customers);
+                    response.Model = autoMapper.Map<List<CustomerResponseModel>>(customers);
                 }
 
                 return response;
             }
         }
 
+        public async Task<List<DropDownModel>> GetCustomersDropDown()
+        {
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+            {
+                var customers = await unitOfWork.AdminRepository.GetCustomersDropDown();                
+                return customers;
+            }
+        }
+
         public async Task<ResponseModel<CustomerResponseModel>> GetCustomer(int customerId)
         {
-            using (var unitOfWork = _unitOfWorkFactory.CreateUnitOfWork())
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<CustomerResponseModel>();
 
@@ -164,7 +173,7 @@ namespace Services.ServicesImpl
                 }
                 else
                 {
-                    response.Model = _autoMapper.Map<CustomerResponseModel>(customer);
+                    response.Model = autoMapper.Map<CustomerResponseModel>(customer);
                 }
 
                 return response;
@@ -173,7 +182,7 @@ namespace Services.ServicesImpl
 
         public async Task<ResponseModel<string>> DeleteCustomer(int customerId)
         {
-            using (var unitOfWork = _unitOfWorkFactory.CreateUnitOfWork())
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<string>();
 
@@ -187,7 +196,7 @@ namespace Services.ServicesImpl
                 else
                 {
                     customer.IsActive = false;
-                    customer.UpdatedBy = await _tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
                     customer.UpdatedDate = DateTime.Now;
 
                     if (await unitOfWork.SaveChangesAsync())
@@ -204,5 +213,123 @@ namespace Services.ServicesImpl
             }
         }
         #endregion
+
+        public async Task<ResponseModel<FruitResponseModel>> AddFruit(FruitAddModel requestModel)
+        {
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+            {
+                var response = new ResponseModel<FruitResponseModel>();
+
+                var fruitExits = await unitOfWork.AdminRepository.GetFruitByName(requestModel.Name);
+
+                if (fruitExits != null)
+                {
+                    response.IsError = true;
+                    response.Message = "Fruit with same name already exists";
+                }
+                else
+                {
+                    var fruit = autoMapper.Map<Fruit>(requestModel);
+
+                    fruit.IsActive = true;
+                    fruit.CreatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    fruit.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+
+                    var addedFruit = await unitOfWork.AdminRepository.AddFruit(fruit);
+                    if (addedFruit != null)
+                    {
+                        await unitOfWork.SaveChangesAsync();
+                        response.Message = "Fruit added successfuly";
+                        response.Model = autoMapper.Map<FruitResponseModel>(addedFruit);
+
+                    }
+                    else
+                    {
+                        response.IsError = true;
+                        response.Message = "Unable to add Fruit";
+                    }
+                }
+                return response;
+            }
+        }
+
+        public async Task<ResponseModel<List<FruitResponseModel>>> GetFruits()
+        {
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+            {
+                var response = new ResponseModel<List<FruitResponseModel>>();
+
+                var fruits = await unitOfWork.AdminRepository.GetFruits();
+
+                if (fruits == null || fruits.Count < 1)
+                {
+                    response.Message = "No Fruit found";
+                    response.Model = new List<FruitResponseModel>();
+                }
+                else
+                {
+                    response.Model = autoMapper.Map<List<FruitResponseModel>>(fruits);
+                }
+
+                return response;
+            }
+        }
+
+        public async Task<ResponseModel<FruitResponseModel>> UpdateFruit(FruitAddModel FruitAddModel)
+        {
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+            {
+                var response = new ResponseModel<FruitResponseModel>();
+
+                var fruit = await unitOfWork.AdminRepository.GetFruit(FruitAddModel.Id);
+
+                if (fruit == null)
+                {
+                    response.IsError = true;
+                    response.Message = "Fruit does not exists";
+                }
+                else
+                {
+                    autoMapper.Map(FruitAddModel, fruit);
+
+                    fruit.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+
+                    if (await unitOfWork.SaveChangesAsync())
+                    {
+                        response.Message = "Fruit updated successfully.";
+                        response.Model = autoMapper.Map<FruitResponseModel>(fruit);
+                    }
+                    else
+                    {
+                        response.IsError = true;
+                        response.Message = "Unable to update Fruit";
+                    }
+                }
+                return response;
+            }
+        }
+
+        public async Task<ResponseModel<FruitResponseModel>> GetFruit(int id)
+        {
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+            {
+                var response = new ResponseModel<FruitResponseModel>();
+
+                var fruit = await unitOfWork.AdminRepository.GetFruit(id);
+
+                if (fruit == null)
+                {
+                    response.IsError = true;
+                    response.Message = "Fruit does not exists";
+                }
+                else
+                {
+                    response.Model = autoMapper.Map<FruitResponseModel>(fruit);
+                }
+
+                return response;
+            }
+        }
+
     }
 }

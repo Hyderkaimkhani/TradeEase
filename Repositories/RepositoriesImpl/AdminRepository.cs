@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Domain.Models.ResponseModel;
 
 namespace Repositories.RepositoriesImpl
 {
@@ -25,19 +26,20 @@ namespace Repositories.RepositoriesImpl
             var Customer = _context.Customer.Add(customerEntity);
             return await Task.FromResult(Customer.Entity);
         }
+
         public async Task<List<Customer>> GetAllCustomers()
         {
-            var Customers = await _context.Set<Customer>().ToListAsync();
+            var Customers = await _context.Set<Customer>().AsNoTracking().ToListAsync();
             return Customers;
         }
 
-        public async Task<Customer> GetCustomer(int customerId)
+        public async Task<Customer?> GetCustomer(int customerId)
         {
             var Customer = await _context.Set<Customer>().FirstOrDefaultAsync(x => x.Id == customerId);
             return Customer;
         }
 
-        public async Task<Customer> GetCustomerByName(string customerName)
+        public async Task<Customer?> GetCustomerByName(string customerName)
         {
             var Customer = await _context.Set<Customer>().FirstOrDefaultAsync(x => x.Name == customerName);
             return Customer;
@@ -45,10 +47,61 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<List<Customer>> GetCustomers(bool isActive)
         {
-            var Customers = await _context.Set<Customer>().Where(x => x.IsActive == isActive).ToListAsync();
+            var Customers = await _context.Set<Customer>().AsNoTracking().Where(x => x.IsActive == isActive).ToListAsync();
             return Customers;
         }
 
+        public async Task<List<DropDownModel>> GetCustomersDropDown()
+        {
+
+            var customers = await _context.Set<Customer>().AsNoTracking()
+                .Where(c => c.IsActive)
+                .Select(c => new DropDownModel
+                {
+                    Key = c.Id,
+                    Value = c.Name
+                })
+                .OrderBy(c => c.Value)
+                .ToListAsync();
+
+            return customers;
+        }
+
         #endregion
+        public async Task<Truck?> GetTruck(string truckNumber)
+        {
+            var truck = await _context.Set<Truck>().FirstOrDefaultAsync(x => x.TruckNumber == truckNumber);
+            return truck;
+        }
+
+        public async Task<Truck> AddTruck(Truck truckEntity)
+        {
+            var truck = _context.Truck.Add(truckEntity);
+            return await Task.FromResult(truck.Entity);
+        }
+
+        public async Task<List<Fruit>> GetFruits()
+        {
+            var fruits = await _context.Set<Fruit>().AsNoTracking().ToListAsync();
+            return fruits;
+        }
+
+        public async Task<Fruit?> GetFruit(int id)
+        {
+            var fruit = await _context.Set<Fruit>().FirstOrDefaultAsync(x=>x.Id == id);
+            return fruit;
+        }
+
+        public async Task<Fruit> AddFruit(Fruit fruitEntity)
+        {
+            var fruit = _context.Fruit.Add(fruitEntity);
+            return await Task.FromResult(fruit.Entity);
+        }
+
+        public async Task<Fruit?> GetFruitByName(string name)
+        {
+            var fruit = await _context.Set<Fruit>().FirstOrDefaultAsync(x => x.Name == name);
+            return fruit;
+        }
     }
 }

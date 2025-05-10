@@ -7,7 +7,7 @@ using Services.Interfaces;
 
 namespace API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [Authorize]
     [ApiController]
     public class AdminController : ControllerBase
@@ -42,7 +42,7 @@ namespace API.Controllers
         [HttpGet("Customer")]
         public async Task<IActionResult> GetCustomers([FromQuery] bool? isActive)
         {
-            if(isActive.HasValue)
+            if (isActive.HasValue)
             {
                 return Ok(await _adminService.GetCustomers(isActive.Value));
             }
@@ -52,7 +52,13 @@ namespace API.Controllers
             }
         }
 
-       
+        [HttpGet("Customer/dropdown")]
+        public async Task<IActionResult> GetCustomersDropDown()
+        {
+            return Ok(await _adminService.GetCustomersDropDown());
+
+        }
+
         [HttpGet("Customer/{id}")]
         public async Task<IActionResult> GetCustomer(int id)
         {
@@ -64,6 +70,43 @@ namespace API.Controllers
         public async Task<IActionResult> DeleteCustomer(int id)
         {
             var response = await _adminService.DeleteCustomer(id);
+            return Ok(response);
+        }
+
+        #endregion
+
+        #region Fruit
+
+        [HttpPost("Fruit")]
+        public async Task<IActionResult> AddFruit(FruitAddModel requestModel)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("One or more required parameters not passed.");
+
+            var response = new ResponseModel<FruitResponseModel>();
+            if (requestModel.Id == 0)
+            {
+                response = await _adminService.AddFruit(requestModel);
+            }
+            else
+            {
+                response = await _adminService.UpdateFruit(requestModel);
+            }
+            return Ok(response);
+        }
+
+        [HttpGet("Fruit")]
+        public async Task<IActionResult> GetFruits()
+        {
+            return Ok(await _adminService.GetFruits());
+
+        }
+
+
+        [HttpGet("Fruit/{id}")]
+        public async Task<IActionResult> GetFruit(int id)
+        {
+            var response = await _adminService.GetFruit(id);
             return Ok(response);
         }
 

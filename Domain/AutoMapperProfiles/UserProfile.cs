@@ -2,6 +2,7 @@
 using Domain.Entities;
 using Domain.Models;
 using Domain.Models.RequestModel;
+using Domain.Models.ResponseModel;
 
 namespace Domain.AutoMapperProfiles
 {

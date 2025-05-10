@@ -8,6 +8,7 @@ namespace Repositories.Interfaces
         IUserRepository UserRepository { get; }
         ITokenRepository TokenRepository { get; }
         IAdminRepository AdminRepository { get; }
+        ISupplyRepository SupplyRepository { get; }
 
         void DiscardChanges();
 
