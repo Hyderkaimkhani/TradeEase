@@ -1,10 +1,11 @@
-﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Models.RequestModel
 {
-    public class CustomerAddModel
+    public class CustomerUpdateModel
     {
+        public int Id { get; set; }
+
         [Required, MaxLength(100)]
         public string Name { get; set; } = string.Empty;
 
@@ -17,17 +18,11 @@ namespace Domain.Models.RequestModel
         [MaxLength(100)]
         public string? Address { get; set; }
 
-        [Required, MaxLength(20)]
-        [DefaultValue("Customer")]
-        [RegularExpression("Customer|Supplier", ErrorMessage = $"Invalid EntityType, Valid values are: Customer,Supplier")]
-        public string EntityType { get; set; } = "Customer";
-
         [MaxLength(50)]
-        public string? PaymentTerms { get; set; } = "Cash";
+        public string PaymentTerms { get; set; } = string.Empty;
 
         //public decimal TotalCredit { get; set; } = 0;
 
         public decimal? CreditBalance { get; set; } = 0;
     }
-
 }

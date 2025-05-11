@@ -41,7 +41,7 @@ namespace Services.ServicesImpl
                 if (customerExists != null)
                 {
                     response.IsError = true;
-                    response.Message = "Customer with same name already exists";
+                    response.Message = $"{customerExists.EntityType} with same name already exists";
                 }
                 else
                 {
@@ -49,56 +49,67 @@ namespace Services.ServicesImpl
 
                     customer.IsActive = true;
                     customer.CreatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
-                    customer.CreatedDate = DateTime.Now;
+                    customer.CreatedDate = DateTime.UtcNow;
                     customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
-                    customer.UpdatedDate = DateTime.Now;
+                    customer.UpdatedDate = DateTime.UtcNow;
 
                     var addedCustomer = await unitOfWork.AdminRepository.AddCustomer(customer);
                     if (addedCustomer != null)
                     {
                         await unitOfWork.SaveChangesAsync();
-                        response.Message = "Customer added successfuly";
+                        response.Message = $"{customerAddModel.EntityType} added successfuly";
                         response.Model = autoMapper.Map<CustomerResponseModel>(addedCustomer);
 
                     }
                     else
                     {
                         response.IsError = true;
-                        response.Message = "Unable to add Customer";
+                        response.Message = $"Unable to add {customerAddModel.EntityType}";
                     }
                 }
                 return response;
             }
         }
 
-        public async Task<ResponseModel<CustomerResponseModel>> UpdateCustomer(CustomerAddModel customerAddModel)
+        public async Task<ResponseModel<CustomerResponseModel>> UpdateCustomer(CustomerUpdateModel requestModel)
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<CustomerResponseModel>();
 
-                var customer = await unitOfWork.AdminRepository.GetCustomer(customerAddModel.Id);
+                var customer = await unitOfWork.AdminRepository.GetCustomer(requestModel.Id);
 
                 if (customer == null)
                 {
                     response.IsError = true;
-                    response.Message = "Customer does not exists";
+                    response.Message = $"Customer does not exists";
                 }
                 else
                 {
-                    autoMapper.Map(customerAddModel, customer);
 
-                    customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    var customerExists = await unitOfWork.AdminRepository.GetCustomerByName(requestModel.Name);
 
-                    if (await unitOfWork.SaveChangesAsync())
+                    if (customerExists != null && customer.Id != requestModel.Id)
                     {
-                        response.Message = "Customer updated successfully.";
-                        response.Model = autoMapper.Map<CustomerResponseModel>(customer);
+                        response.IsError = true;
+                        response.Message = $"{customerExists.EntityType} with same name already exists";
                     }
                     else
                     {
-                        response.IsError = true;
-                        response.Message = "Unable to update Customer";
+                        autoMapper.Map(requestModel, customer);
+
+                        customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+
+                        if (await unitOfWork.SaveChangesAsync())
+                        {
+                            response.Message = $"{customer.EntityType} updated successfully.";
+                            response.Model = autoMapper.Map<CustomerResponseModel>(customer);
+                        }
+                        else
+                        {
+                            response.IsError = true;
+                            response.Message = $"Unable to update {customer.EntityType}";
+                        }
                     }
                 }
                 return response;
@@ -127,13 +138,13 @@ namespace Services.ServicesImpl
             }
         }
 
-        public async Task<ResponseModel<List<CustomerResponseModel>>> GetCustomers(bool isActive)
+        public async Task<ResponseModel<List<CustomerResponseModel>>> GetCustomers(bool? isActive, string? entityType)
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<List<CustomerResponseModel>>();
 
-                var customers = await unitOfWork.AdminRepository.GetCustomers(isActive);
+                var customers = await unitOfWork.AdminRepository.GetCustomers(isActive, entityType);
 
                 if (customers == null || customers.Count < 1)
                 {
@@ -149,11 +160,11 @@ namespace Services.ServicesImpl
             }
         }
 
-        public async Task<List<DropDownModel>> GetCustomersDropDown()
+        public async Task<List<DropDownModel>> GetCustomersDropDown(string entityType)
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
-                var customers = await unitOfWork.AdminRepository.GetCustomersDropDown();                
+                var customers = await unitOfWork.AdminRepository.GetCustomersDropDown(entityType);
                 return customers;
             }
         }
@@ -197,21 +208,43 @@ namespace Services.ServicesImpl
                 {
                     customer.IsActive = false;
                     customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
-                    customer.UpdatedDate = DateTime.Now;
+                    customer.UpdatedDate = DateTime.UtcNow;
 
                     if (await unitOfWork.SaveChangesAsync())
                     {
-                        response.Message = "Customer deleted successfully.";
+                        response.Message = $"{customer.EntityType} deleted successfully.";
                     }
                     else
                     {
                         response.IsError = true;
-                        response.Message = "Unable to delete Customer";
+                        response.Message = $"Unable to delete {customer.EntityType}.";
                     }
                 }
                 return response;
             }
         }
+
+        public async Task AdjustCustomerBalance(IUnitOfWork unitOfWork, int customerId, decimal oldAmount, decimal newAmount, string type)
+        {
+            var customer = await unitOfWork.AdminRepository.GetCustomer(customerId);
+
+            if (customer == null) throw new Exception("Customer not found");
+
+            // Determine the balance change
+            decimal difference = newAmount - oldAmount;
+
+            // For orders/sales, receivable => increase balance
+            // For supplies/purchases, payable => decrease balance
+            if (type == OperationType.Order.ToString())
+            {
+                customer.CreditBalance += difference;
+            }
+            else if (type == OperationType.Supply.ToString())
+            {
+                customer.CreditBalance -= difference;
+            }
+        }
+
         #endregion
 
         public async Task<ResponseModel<FruitResponseModel>> AddFruit(FruitAddModel requestModel)

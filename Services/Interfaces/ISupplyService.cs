@@ -6,7 +6,7 @@ namespace Services.Interfaces
 {
     public interface ISupplyService
     {
-        Task<ResponseModel<SupplyResponseModel>> AddSupply(SupplyAddRequest requestModel);
+        Task<ResponseModel<SupplyResponseModel>> AddSupply(SupplyAddModel requestModel);
 
         Task<ResponseModel<SupplyResponseModel>> GetSupply(int id);
 
@@ -14,7 +14,7 @@ namespace Services.Interfaces
 
         Task<PaginatedResponseModel<SupplyResponseModel>> GetSupplies(int page, int pageSize, int? fruitId, int? supplierId);
 
-        Task<ResponseModel<SupplyResponseModel>> UpdateSupply(SupplyUpdateRequest requestModel);
+        Task<ResponseModel<SupplyResponseModel>> UpdateSupply(SupplyUpdateModel requestModel);
 
         Task<ResponseModel<bool>> DeleteSupply(int id);
     }

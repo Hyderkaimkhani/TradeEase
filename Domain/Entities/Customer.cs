@@ -26,10 +26,10 @@ namespace Domain.Entities
         public string? Address { get; set; }
 
         [MaxLength(50)]
-        public string PaymentTerms { get; set; } = "Cash";
+        public string? PaymentTerms { get; set; } = "Cash";
 
-        [Column(TypeName = "decimal(10,2)")]
-        public decimal TotalCredit { get; set; } = 0;
+        //[Column(TypeName = "decimal(10,2)")]
+        //public decimal TotalCredit { get; set; } = 0;
 
         [Column(TypeName = "decimal(10,2)")]
         public decimal CreditBalance { get; set; } = 0;

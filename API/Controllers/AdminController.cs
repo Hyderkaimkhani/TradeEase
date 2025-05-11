@@ -1,4 +1,5 @@
-﻿using Domain.Models;
+﻿using Common;
+using Domain.Models;
 using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
 using Microsoft.AspNetCore.Authorization;
@@ -27,35 +28,48 @@ namespace API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest("One or more required parameters not passed.");
 
-            var response = new ResponseModel<CustomerResponseModel>();
-            if (requestModel.Id == 0)
-            {
-                response = await _adminService.AddCustomer(requestModel);
-            }
-            else
-            {
-                response = await _adminService.UpdateCustomer(requestModel);
-            }
+            var response = await _adminService.AddCustomer(requestModel);
+
+            return Ok(response);
+        }
+
+        [HttpPost("Customer/Update")]
+        public async Task<IActionResult> UpdateCustomer(CustomerUpdateModel requestModel)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("One or more required parameters not passed.");
+
+            var response = await _adminService.UpdateCustomer(requestModel);
+
             return Ok(response);
         }
 
         [HttpGet("Customer")]
-        public async Task<IActionResult> GetCustomers([FromQuery] bool? isActive)
+        public async Task<IActionResult> GetCustomers([FromQuery] bool? isActive, [FromQuery] string? entityType)
         {
-            if (isActive.HasValue)
+            if (!string.IsNullOrEmpty(entityType))
             {
-                return Ok(await _adminService.GetCustomers(isActive.Value));
+                if (!Enum.TryParse<EntityType>(entityType, true, out _))
+                {
+                    var validTypes = string.Join(", ", Enum.GetNames(typeof(EntityType)));
+                    return BadRequest($"Invalid EntityType. Valid values are: {validTypes}");
+                }
             }
-            else
-            {
-                return Ok(await _adminService.GetAllCustomers());
-            }
+
+            return Ok(await _adminService.GetCustomers(isActive, entityType));
         }
 
         [HttpGet("Customer/dropdown")]
         public async Task<IActionResult> GetCustomersDropDown()
         {
-            return Ok(await _adminService.GetCustomersDropDown());
+            return Ok(await _adminService.GetCustomersDropDown(EntityType.Customer.ToString()));
+
+        }
+
+        [HttpGet("Supplier/dropdown")]
+        public async Task<IActionResult> GetSuppliers()
+        {
+            return Ok(await _adminService.GetCustomersDropDown(EntityType.Customer.ToString()));
 
         }
 

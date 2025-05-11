@@ -2,7 +2,7 @@
 
 namespace Domain.Models.RequestModel
 {
-    public class SupplyAddRequest
+    public class SupplyAddModel
     {
         public int SupplierId { get; set; }
 
@@ -16,8 +16,9 @@ namespace Domain.Models.RequestModel
         [Range(1, int.MaxValue, ErrorMessage = "Purchase Price must be at least 1")]
         public decimal PurchasePrice { get; set; }
 
-        [Range(0, int.MaxValue, ErrorMessage = "Quantity must be positive value.")]
-        public decimal AmountPaid { get; set; }
+        //[Range(0, int.MaxValue, ErrorMessage = "Quantity must be positive value.")]
+        //public decimal AmountPaid { get; set; }
+        public DateTime? SupplyDate { get; set; } = DateTime.Now;
 
         [Required]
         public string TruckNumber { get; set; } = string.Empty;

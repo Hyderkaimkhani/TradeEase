@@ -9,11 +9,11 @@ namespace Domain.Entities
         [MaxLength(100)]
         public string? CreatedBy { get; set; }
 
-        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         [MaxLength(100)]
         public string? UpdatedBy { get; set; }
 
-        public DateTime UpdatedDate { get; set; } = DateTime.Now;
+        public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
     }
 }

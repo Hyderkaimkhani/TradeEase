@@ -14,8 +14,8 @@
         public DateTime SupplyDate { get; set; }
         public int? TruckAssignmentId { get; set; }
         public string? Notes { get; set; }
-        public string Supplier { get; set; } = string.Empty;
-        public string Fruit { get; set; } = string.Empty;
+        public string SupplierName { get; set; } = string.Empty;
+        public string FruitName { get; set; } = string.Empty;
         public string TruckNumber { get; set; } = string.Empty;
     }
 }

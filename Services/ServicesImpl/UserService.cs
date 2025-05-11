@@ -53,9 +53,9 @@ namespace Services.ServicesImpl
                     user.Status = "Activated";
                     user.Password = Utilities.MD5Hash("helloworld" + _configuration.GetSection("RandomPasswordSeed").Value);
                     user.CreatedBy = "";//await _tokenService.GetClaimFromToken(JwtRegisteredClaimNames.Sub);
-                    user.CreatedDate = DateTime.Now;
+                    user.CreatedDate = DateTime.UtcNow;
                     user.UpdatedBy = "";//await _tokenService.GetClaimFromToken(JwtRegisteredClaimNames.Sub);
-                    user.UpdatedDate = DateTime.Now;
+                    user.UpdatedDate = DateTime.UtcNow;
                     user.Email = user.Email.ToLower();
 
 

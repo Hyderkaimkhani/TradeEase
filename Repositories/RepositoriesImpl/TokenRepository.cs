@@ -28,7 +28,7 @@ namespace Repositories.RepositoriesImpl
                 user.JWTToken = jwtToken;
                 user.RefreshToken = refreshToken;
                 user.RefreshTokenValidTill = refreshToken_ValidTill;
-                user.UpdatedDate = DateTime.Now;
+                user.UpdatedDate = DateTime.UtcNow;
                 _context.UserAuth.Update(user);
             }
             else
@@ -38,8 +38,8 @@ namespace Repositories.RepositoriesImpl
                 userAuth.RefreshToken = refreshToken;
                 userAuth.JWTToken = jwtToken;
                 userAuth.RefreshTokenValidTill = refreshToken_ValidTill;
-                userAuth.CreatedDate = DateTime.Now;
-                userAuth.UpdatedDate = DateTime.Now;
+                userAuth.CreatedDate = DateTime.UtcNow;
+                userAuth.UpdatedDate = DateTime.UtcNow;
                 _context.UserAuth.Add(userAuth);
             }
 

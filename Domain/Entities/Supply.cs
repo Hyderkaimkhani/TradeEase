@@ -10,10 +10,10 @@
         public decimal PurchasePrice { get; set; }
         public decimal TotalPrice { get; set; }
         public decimal AmountPaid { get; set; }
-        public string PaymentStatus { get; set; }
+        public string PaymentStatus { get; set; } = "Unpaid";
         public DateTime SupplyDate { get; set; }
         public int? TruckAssignmentId { get; set; }
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
         public Customer Supplier { get; set; }
         public Fruit Fruit { get; set; }
         public Truck Truck { get; set; }

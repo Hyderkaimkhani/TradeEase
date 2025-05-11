@@ -22,7 +22,7 @@ namespace API.Controllers
         }
 
         [HttpPost("")]
-        public async Task<IActionResult> AddSupply(SupplyAddRequest requestModel)
+        public async Task<IActionResult> AddSupply(SupplyAddModel requestModel)
         {
             if (!ModelState.IsValid)
                 return BadRequest("One or more required parameters not passed.");
@@ -35,14 +35,14 @@ namespace API.Controllers
         }
 
         [HttpPost("Update")]
-        public async Task<IActionResult> UpdateSupply(SupplyUpdateRequest requestModel)
+        public async Task<IActionResult> UpdateSupply(SupplyUpdateModel requestModel)
         {
             if (!ModelState.IsValid)
                 return BadRequest("One or more required parameters not passed.");
 
             var response = new ResponseModel<SupplyResponseModel>();
 
-            response = await supplyService.AddSupply(requestModel);
+            response = await supplyService.UpdateSupply(requestModel);
 
             return Ok(response);
         }
@@ -61,7 +61,7 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [HttpGet("id")]
+        [HttpGet("{id}")]
         public async Task<IActionResult> GetSupply(int id)
         {
             var supplies = await supplyService.GetSupply(id);

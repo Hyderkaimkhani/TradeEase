@@ -8,5 +8,6 @@
         public string? Notes { get; set; }
         public Truck Truck { get; set; }
         public ICollection<Supply> Supplies { get; set; }
+        public ICollection<Order> Orders { get; set; }
     }
 }

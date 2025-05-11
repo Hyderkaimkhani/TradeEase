@@ -1,13 +1,9 @@
 ﻿using Domain.Entities;
-using Repositories.Context;
-using Repositories.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Domain.Models.ResponseModel;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Repositories.Interfaces;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Repositories.RepositoriesImpl
 {
@@ -45,16 +41,30 @@ namespace Repositories.RepositoriesImpl
             return Customer;
         }
 
-        public async Task<List<Customer>> GetCustomers(bool isActive)
+        public async Task<List<Customer>> GetCustomers(bool? isActive, string? entityType)
         {
-            var Customers = await _context.Set<Customer>().AsNoTracking().Where(x => x.IsActive == isActive).ToListAsync();
-            return Customers;
+            var query = _context.Set<Customer>().AsNoTracking();
+
+            if (isActive.HasValue)
+            {
+                query = query.Where(x => x.IsActive == isActive.Value);
+            }
+
+            if (!string.IsNullOrEmpty(entityType))
+            {
+                query = query.Where(c => c.EntityType.Equals(entityType, StringComparison.OrdinalIgnoreCase));
+            }
+
+            var customers  = await query.ToListAsync();
+
+            return customers;
         }
 
-        public async Task<List<DropDownModel>> GetCustomersDropDown()
+        public async Task<List<DropDownModel>> GetCustomersDropDown(string entityType)
         {
 
             var customers = await _context.Set<Customer>().AsNoTracking()
+                .Where(c => c.EntityType.Equals(entityType, StringComparison.OrdinalIgnoreCase))
                 .Where(c => c.IsActive)
                 .Select(c => new DropDownModel
                 {
@@ -78,6 +88,12 @@ namespace Repositories.RepositoriesImpl
         {
             var truck = _context.Truck.Add(truckEntity);
             return await Task.FromResult(truck.Entity);
+        }
+
+        public async Task<TruckAssignment> AddTruckAssignment(TruckAssignment entity)
+        {
+            var truckAssignment = _context.TruckAssignment.Add(entity);
+            return await Task.FromResult(truckAssignment.Entity);
         }
 
         public async Task<List<Fruit>> GetFruits()

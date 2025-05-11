@@ -1,6 +1,7 @@
 ﻿using Domain.Models;
 using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
+using Repositories.Interfaces;
 
 namespace Services.Interfaces
 {
@@ -13,13 +14,15 @@ namespace Services.Interfaces
 
         Task<ResponseModel<List<CustomerResponseModel>>> GetAllCustomers();
 
-        Task<ResponseModel<List<CustomerResponseModel>>> GetCustomers(bool isActive);
+        Task<ResponseModel<List<CustomerResponseModel>>> GetCustomers(bool? isActive, string? entityType);
 
-        Task<List<DropDownModel>> GetCustomersDropDown();
+        Task<List<DropDownModel>> GetCustomersDropDown(string entityType);
 
-        Task<ResponseModel<CustomerResponseModel>> UpdateCustomer(CustomerAddModel customerModel);
+        Task<ResponseModel<CustomerResponseModel>> UpdateCustomer(CustomerUpdateModel customerModel);
 
         Task<ResponseModel<string>> DeleteCustomer(int customerId);
+
+        Task AdjustCustomerBalance(IUnitOfWork unitOfWork, int customerId, decimal oldAmount, decimal newAmount, string type);
         #endregion
 
         #region Fruit

@@ -12,9 +12,11 @@
 
         public string? Address { get; set; }
 
+        public string EntityType { get; set; } = string.Empty;
+
         public string? PaymentTerms { get; set; }
 
-        public decimal TotalCredit { get; set; }
+        //public decimal TotalCredit { get; set; }
 
         public decimal? CreditBalance { get; set; }
 

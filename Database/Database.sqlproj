@@ -78,5 +78,6 @@
     <None Include="Tables\PaymentAllocation.sql" />
     <None Include="Tables\Order.sql" />
     <None Include="Tables\OrderSupplies.sql" />
+    <None Include="Tables\TruckAssignment.sql" />
   </ItemGroup>
 </Project>

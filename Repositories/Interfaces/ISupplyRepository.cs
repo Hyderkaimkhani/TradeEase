@@ -13,6 +13,8 @@ namespace Repositories.Interfaces
 
         Task<List<Supply>> GetSupplies(bool isActive);
 
+        Task<List<Supply>> GetUnAssignedSupplies(int truckId);
+
         Task<PaginatedResponseModel<Supply>> GetSupplies(int page, int pageSize, int? fruitId, int? supplierId);
 
     }

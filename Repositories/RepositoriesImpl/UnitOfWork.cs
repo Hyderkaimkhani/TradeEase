@@ -7,9 +7,11 @@ namespace Repositories.RepositoriesImpl
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private IUserRepository _userRepository;
-        private ITokenRepository _tokenRepository;
-        private IAdminRepository _adminRepository;
+        private IUserRepository? _userRepository;
+        private ITokenRepository? _tokenRepository;
+        private IAdminRepository? _adminRepository;
+        private IOrderRepository? _orderRepository;
+        private ISupplyRepository? _supplyRepository;
 
         private readonly Context.Context _context;
 
@@ -54,6 +56,32 @@ namespace Repositories.RepositoriesImpl
                 }
 
                 return _adminRepository;
+            }
+        }
+
+        public ISupplyRepository SupplyRepository
+        {
+            get
+            {
+                if (_supplyRepository == null)
+                {
+                    _supplyRepository = new SupplyRepository(_context);
+                }
+
+                return _supplyRepository;
+            }
+        }
+
+        public IOrderRepository OrderRepository
+        {
+            get
+            {
+                if (_orderRepository == null)
+                {
+                    _orderRepository = new OrderRepository(_context);
+                }
+
+                return _orderRepository;
             }
         }
 

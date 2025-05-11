@@ -43,6 +43,15 @@ namespace Repositories.RepositoriesImpl
             return supplies;
         }
 
+        public async Task<List<Supply>> GetUnAssignedSupplies(int truckId)
+        {
+            var supplies = await _context.Set<Supply>()
+                .Where(x => x.TruckId == truckId && x.IsActive == true && x.TruckAssignmentId == null)
+                .OrderByDescending(s => s.SupplyDate).ToListAsync();
+
+            return supplies;
+        }
+
         public async Task<PaginatedResponseModel<Supply>> GetSupplies(int page, int pageSize, int? fruitId, int? supplierId)
         {
             var query = _context.Set<Supply>().AsNoTracking().Where(x => x.IsActive);

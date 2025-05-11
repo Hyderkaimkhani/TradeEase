@@ -15,5 +15,7 @@
         public string? Status { get; set; }
 
         public ICollection<Supply> Supplies { get; set; }
+
+        public ICollection<Order> Orders { get; set; }
     }
 }

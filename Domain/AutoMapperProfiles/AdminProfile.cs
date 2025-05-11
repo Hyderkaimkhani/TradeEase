@@ -10,14 +10,15 @@ namespace Domain.AutoMapperProfiles
     {
         public AdminProfile()
         {
-            CreateMap<CustomerAddModel, Customer>().ReverseMap();
-            CreateMap<Customer, CustomerResponseModel>().ReverseMap();
+            CreateMap<CustomerAddModel, Customer>();
+            CreateMap<CustomerUpdateModel, Customer>();
+            CreateMap<Customer, CustomerResponseModel>();
 
-            CreateMap<FruitAddModel, Fruit>().ReverseMap();
-            CreateMap<Fruit, FruitResponseModel>().ReverseMap();
+            CreateMap<FruitAddModel, Fruit>();
+            CreateMap<Fruit, FruitResponseModel>();
 
-            CreateMap<SupplyAddRequest, Supply>().ReverseMap();
-            CreateMap<SupplyUpdateRequest, Supply>().ReverseMap();
+            CreateMap<SupplyAddModel, Supply>();
+            CreateMap<SupplyUpdateModel, Supply>();
             CreateMap<SupplyResponseModel, Supply>()
                 .ForMember(dest => dest.Fruit, opt => opt.Ignore())
                 .ForMember(dest => dest.Truck, opt => opt.Ignore())
@@ -25,9 +26,22 @@ namespace Domain.AutoMapperProfiles
                 .ForMember(dest => dest.TruckAssignment, opt => opt.Ignore());
 
             CreateMap<Supply, SupplyResponseModel>()
-                .ForMember(dest => dest.Fruit, opt => opt.MapFrom(src => src.Fruit.Name))
+                .ForMember(dest => dest.FruitName, opt => opt.MapFrom(src => src.Fruit.Name))
                 .ForMember(dest => dest.TruckNumber, opt => opt.MapFrom(src => src.Truck.TruckNumber))
-                .ForMember(dest => dest.Supplier, opt => opt.MapFrom(src => src.Supplier.Name));
+                .ForMember(dest => dest.SupplierName, opt => opt.MapFrom(src => src.Supplier.Name));
+
+            CreateMap<OrderAddModel, Order>();
+            CreateMap<OrderUpdateModel, Order>();
+            CreateMap<OrderResponseModel, Order>()
+                .ForMember(dest => dest.Fruit, opt => opt.Ignore())
+                .ForMember(dest => dest.Truck, opt => opt.Ignore())
+                .ForMember(dest => dest.Customer, opt => opt.Ignore())
+                .ForMember(dest => dest.TruckAssignment, opt => opt.Ignore());
+
+            CreateMap<Order, OrderResponseModel>()
+                .ForMember(dest => dest.FruitName, opt => opt.MapFrom(src => src.Fruit.Name))
+                .ForMember(dest => dest.TruckNumber, opt => opt.MapFrom(src => src.Truck.TruckNumber))
+                .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Name));
         }
     }
 }

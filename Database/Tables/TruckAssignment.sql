@@ -1,0 +1,7 @@
+﻿CREATE TABLE TruckAssignment (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    TruckId INT NOT NULL,
+    AssignmentDate DATETIME NOT NULL DEFAULT GETDATE(),
+    Notes NVARCHAR(255) NULL,
+    FOREIGN KEY (TruckId) REFERENCES Truck(Id)
+);
