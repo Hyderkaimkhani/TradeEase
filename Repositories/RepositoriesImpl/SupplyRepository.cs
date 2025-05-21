@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Common;
+using Domain.Entities;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Interfaces;
@@ -52,6 +53,19 @@ namespace Repositories.RepositoriesImpl
             return supplies;
         }
 
+        public async Task<List<Supply>> GetUnpaidSupplies(int? supplierId)
+        {
+            var query = _context.Set<Supply>().AsNoTracking().Where(x => x.PaymentStatus != PaymentStatus.Paid.ToString() && x.IsActive);
+
+            if (supplierId.HasValue)
+                query = query.Where(x => x.SupplierId == supplierId.Value);
+
+            var supplies = await query
+                .OrderBy(s => s.SupplyDate).ToListAsync();
+
+            return supplies;
+        }
+
         public async Task<PaginatedResponseModel<Supply>> GetSupplies(int page, int pageSize, int? fruitId, int? supplierId)
         {
             var query = _context.Set<Supply>().AsNoTracking().Where(x => x.IsActive);
@@ -84,6 +98,20 @@ namespace Repositories.RepositoriesImpl
         {
             var supply = await _context.Set<Supply>().FirstOrDefaultAsync(x => x.Id == id);
             return supply;
+        }
+
+        public async Task<List<Supply>> GetSuppliesByCustomer(int supplierId, string? paymentStatus = null)
+        {
+            var query = _context.Set<Supply>().AsNoTracking().Where(x => x.SupplierId == supplierId && x.IsActive);
+
+            if (!string.IsNullOrEmpty(paymentStatus))
+                query = query.Where(x => x.PaymentStatus == paymentStatus);
+
+            var supplies = await query
+                .OrderByDescending(s => s.SupplyDate).ToListAsync();
+
+
+            return supplies;
         }
     }
 }

@@ -28,6 +28,8 @@ namespace Repositories.Context
         public virtual DbSet<Truck> Truck { get; set; }
         public virtual DbSet<Fruit> Fruit { get; set; }
         public virtual DbSet<TruckAssignment> TruckAssignment { get; set; }
+        public virtual DbSet<Payment> Payment { get; set; }
+        public virtual DbSet<PaymentAllocation> PaymentAllocation { get; set; }
         public virtual DbSet<AppToken> AppToken { get; set; }
 
         //protected override void OnModelCreating(ModelBuilder modelBuilder)

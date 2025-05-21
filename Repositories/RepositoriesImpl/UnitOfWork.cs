@@ -12,6 +12,7 @@ namespace Repositories.RepositoriesImpl
         private IAdminRepository? _adminRepository;
         private IOrderRepository? _orderRepository;
         private ISupplyRepository? _supplyRepository;
+        private IPaymentRepository? _paymentRepository;
 
         private readonly Context.Context _context;
 
@@ -82,6 +83,19 @@ namespace Repositories.RepositoriesImpl
                 }
 
                 return _orderRepository;
+            }
+        }
+
+        public IPaymentRepository PaymentRepository
+        {
+            get
+            {
+                if (_paymentRepository == null)
+                {
+                    _paymentRepository = new PaymentRepository(_context);
+                }
+
+                return _paymentRepository;
             }
         }
 

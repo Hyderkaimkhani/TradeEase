@@ -9,6 +9,10 @@ namespace Repositories.Interfaces
 
         Task<Order?> GetOrder(int id);
 
+        Task<List<Order>> GetOrdersByCustomer(int customerId, string? paymentStatus = null);
+
+        Task<List<Order>> GetUnpaidOrders(int? customerId);
+
         Task<PaginatedResponseModel<Order>> GetOrders(int page, int pageSize, int? fruitId, int? customerId);
 
     }

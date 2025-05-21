@@ -21,6 +21,7 @@ namespace Services.Config
             _services.AddTransient<IAdminService, AdminService>();
             _services.AddTransient<ISupplyService, SupplyService>();
             _services.AddTransient<IOrderService, OrderService>();
+            _services.AddTransient<IPaymentService, PaymentService>();
             _services.AddTransient<INotificationService, NotificationService>();
 
         }

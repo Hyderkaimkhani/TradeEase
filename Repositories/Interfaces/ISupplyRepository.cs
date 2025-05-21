@@ -17,5 +17,9 @@ namespace Repositories.Interfaces
 
         Task<PaginatedResponseModel<Supply>> GetSupplies(int page, int pageSize, int? fruitId, int? supplierId);
 
+        Task<List<Supply>> GetUnpaidSupplies(int? supplierId);
+
+        Task<List<Supply>> GetSuppliesByCustomer(int supplierId, string? paymentStatus = null);
+
     }
 }

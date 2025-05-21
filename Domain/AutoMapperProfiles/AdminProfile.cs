@@ -42,6 +42,9 @@ namespace Domain.AutoMapperProfiles
                 .ForMember(dest => dest.FruitName, opt => opt.MapFrom(src => src.Fruit.Name))
                 .ForMember(dest => dest.TruckNumber, opt => opt.MapFrom(src => src.Truck.TruckNumber))
                 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Name));
+
+            CreateMap<Payment, PaymentResponseModel>()
+               .ForMember(dest => dest.PaymentBy, opt => opt.MapFrom(src => src.Customer.Name));
         }
     }
 }

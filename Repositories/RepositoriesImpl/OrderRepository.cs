@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Common;
+using Domain.Entities;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Interfaces;
@@ -24,6 +25,33 @@ namespace Repositories.RepositoriesImpl
         {
             var order = await _context.Set<Order>().FirstOrDefaultAsync(x => x.Id == id);
             return order;
+        }
+
+        public async Task<List<Order>> GetOrdersByCustomer(int customerId, string? paymentStatus = null)
+        {
+            var query = _context.Set<Order>().AsNoTracking().Where(x => x.CustomerId == customerId && x.IsActive);
+
+            if (!string.IsNullOrEmpty(paymentStatus))
+                query = query.Where(x => x.PaymentStatus == paymentStatus);
+
+            var orders = await query
+                .OrderByDescending(s => s.OrderDate).ToListAsync();
+
+
+            return orders;
+        }
+
+        public async Task<List<Order>> GetUnpaidOrders(int? customerId)
+        {
+            var query = _context.Set<Order>().AsNoTracking().Where(x=> x.PaymentStatus != PaymentStatus.Paid.ToString() && x.IsActive);
+
+            if (customerId.HasValue)
+                query = query.Where(x => x.CustomerId == customerId.Value);
+
+            var orders = await query
+                .OrderBy(s => s.OrderDate).ToListAsync();
+
+            return orders;
         }
 
         public async Task<PaginatedResponseModel<Order>> GetOrders(int page, int pageSize, int? fruitId, int? customerId)
