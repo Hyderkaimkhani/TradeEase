@@ -1,5 +1,7 @@
-﻿using Domain.Entities;
+﻿using Common.Interfaces;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Repositories.Helpers;
 using Repositories.Interfaces;
 using System.Reflection;
 
@@ -12,10 +14,13 @@ namespace Repositories.RepositoriesImpl
         private IAdminRepository _adminRepository;
 
         private readonly Context.Context _context;
+        private readonly ICurrentUserService _currentUserService;
 
-        public UnitOfWork(Context.Context context)
+
+        public UnitOfWork(Context.Context context, ICurrentUserService currentUserService)
         {
             _context = context;
+            _currentUserService = currentUserService;
         }
 
         public IUserRepository UserRepository
@@ -80,6 +85,7 @@ namespace Repositories.RepositoriesImpl
                             .Where(e => e.Entity is AuditableEntity &&
                                   (e.State == EntityState.Added || e.State == EntityState.Modified));
 
+                    string currentUser = _currentUserService.GetCurrentUsername();
                     foreach (var entry in entries)
                     {
                         var auditable = (AuditableEntity)entry.Entity;
@@ -87,12 +93,27 @@ namespace Repositories.RepositoriesImpl
                         if (entry.State == EntityState.Added)
                         {
                             auditable.CreatedDate = DateTime.UtcNow;
+                            auditable.CreatedBy = currentUser;
                         }
 
                         auditable.UpdatedDate = DateTime.UtcNow;
+                        auditable.UpdatedBy = currentUser;
+
                     }
 
+                    var auditLogs = AuditHelper.CreateAuditLogs(
+                        _context.ChangeTracker,
+                        () => _currentUserService.GetCurrentUsername()
+                    );
                     int count = await _context.SaveChangesAsync();
+                    // 🔹 Generate audit logs
+
+
+                    // 🔹 Add audit logs BEFORE saving
+                    if (auditLogs.Any())
+                        _context.Set<AuditLog>().AddRange(auditLogs);
+
+                    await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
