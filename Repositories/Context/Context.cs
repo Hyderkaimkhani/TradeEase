@@ -32,6 +32,8 @@ namespace Repositories.Context
         public virtual DbSet<PaymentAllocation> PaymentAllocation { get; set; }
         public virtual DbSet<AppToken> AppToken { get; set; }
 
+        public virtual DbSet<AuditLog> AuditLog { get; set; }
+
         //protected override void OnModelCreating(ModelBuilder modelBuilder)
         //{
         //  base.OnModelCreating(modelBuilder);

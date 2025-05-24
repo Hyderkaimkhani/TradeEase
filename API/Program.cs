@@ -15,6 +15,8 @@ using System.Text.Json;
 using Api.Middleware;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
+using Common.Interfaces;
+using Common.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -185,6 +187,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 var app = builder.Build();
 
 app.UseMiddleware<RequestLoggingMiddleware>();
