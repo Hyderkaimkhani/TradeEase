@@ -33,10 +33,17 @@ namespace Services.ServicesImpl
 
         public async Task<ResponseModel<OrderResponseModel>> AddOrder(OrderAddModel requestModel)
         {
-            var user = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<OrderResponseModel>();
+
+                var customer = await unitOfWork.AdminRepository.GetCustomer(requestModel.CustomerId);
+                if (customer == null || customer.EntityType != EntityType.Customer.ToString())
+                {
+                    response.Message = $"{EntityType.Customer.ToString()} not found or mismatched";
+                    response.IsError = true;
+                    return response;
+                }
 
                 // 1. Get or create Truck
                 Truck? truck = await unitOfWork.AdminRepository.GetTruck(requestModel.TruckNumber);
@@ -47,8 +54,6 @@ namespace Services.ServicesImpl
                     var truckEntity = new Truck
                     {
                         TruckNumber = requestModel.TruckNumber,
-                        CreatedBy = user,
-                        UpdatedBy = user,
                         IsActive = true
                     };
                     truck = await unitOfWork.AdminRepository.AddTruck(truckEntity);
@@ -79,7 +84,7 @@ namespace Services.ServicesImpl
                 }
 
                 // 4. Calculate weighted purchase price from supplies
-                var totalPurchaseAmount = supplies
+                var totalPurchasePrice = supplies
                     .Where(s => s.FruitId == requestModel.FruitId)
                     .Sum(s => s.TotalPrice);
 
@@ -88,38 +93,60 @@ namespace Services.ServicesImpl
                     .Sum(s => s.Quantity);
 
                 var avgPurchasePrice = totalSupplied > 0
-                    ? totalPurchaseAmount / totalSupplied
+                    ? totalPurchasePrice / totalSupplied
                     : 0;
 
                 // 5. Create Order
                 var order = autoMapper.Map<Order>(requestModel);
 
                 order.PurchasePrice = avgPurchasePrice;
-                order.TotalPurchaseAmount = totalPurchaseAmount;
-                order.TotalSellingAmount = requestModel.Quantity * requestModel.SellingPrice;
-                order.ProfitLoss = order.TotalSellingAmount - order.TotalPurchaseAmount;
+                order.TotalPurchasePrice = totalPurchasePrice;
+                order.TotalSellingPrice = requestModel.Quantity * requestModel.SellingPrice;
+                order.ProfitLoss = order.TotalSellingPrice - order.TotalPurchasePrice;
                 order.TruckAssignmentId = truckAssignment.Id;
 
                 order.TruckId = truck.Id;
                 order.IsActive = true;
-                order.CreatedBy = user;
-                order.UpdatedBy = user;
 
                 var addedOrder = await unitOfWork.OrderRepository.AddOrder(order);
                 if (addedOrder != null)
                 {
-                    await adminService.AdjustCustomerBalance(unitOfWork, order.CustomerId, 0, order.TotalSellingAmount, OperationType.Order.ToString());
-                    //var customer = await unitOfWork.AdminRepository.GetCustomer(requestModel.CustomerId);
-                    //if (customer != null)
-                    //{
-                    //    customer.CreditBalance += order.TotalSellingAmount; // Receiveable to Customer (+ve)
-                    //    customer.UpdatedBy = user;
-                    //}
-                    //else
-                    //{
-                    //    response.IsError = true;
-                    //    response.Message = "Customer not exists.";
-                    //}
+                    if (customer.CreditBalance < 0) // If customer has paid in advance, try to allocate from it
+                    {
+                        var allocatable = Math.Min(Math.Abs(customer.CreditBalance), order.TotalSellingPrice);
+
+                        if (allocatable > 0)
+                        {
+                            var payment = new Payment
+                            {
+                                EntityType = EntityType.Customer.ToString(),
+                                EntityId = order.CustomerId,
+                                Amount = allocatable,
+                                PaymentDate = DateTime.Now,
+                                PaymentMethod = "CreditBalance Auto",
+                                Notes = "Auto allocation from advance",
+                            };
+
+                            await unitOfWork.PaymentRepository.AddPayment(payment);
+                            await unitOfWork.SaveChangesAsync();
+
+                            var allocation = new PaymentAllocation
+                            {
+                                PaymentId = payment.Id,
+                                ReferenceType = OperationType.Order.ToString(),
+                                ReferenceId = order.Id,
+                                AllocatedAmount = allocatable
+                            };
+
+                            await unitOfWork.PaymentRepository.AddPaymentAllocation(allocation);
+
+                            order.AmountReceived += allocatable;
+                            order.PaymentStatus = order.AmountReceived >= order.TotalSellingPrice ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
+                            customer.CreditBalance += allocatable;  // Move towards zero
+                        }
+
+                    }
+                    await adminService.AdjustCustomerBalance(unitOfWork, order.CustomerId, 0, order.TotalSellingPrice, OperationType.Order.ToString());
 
                     if (await unitOfWork.SaveChangesAsync())
                     {
@@ -131,7 +158,6 @@ namespace Services.ServicesImpl
                         response.IsError = true;
                         response.Message = "Unable to add Order";
                     }
-
                 }
                 else
                 {
@@ -141,7 +167,6 @@ namespace Services.ServicesImpl
 
                 return response;
             }
-
         }
 
         public async Task<ResponseModel<OrderResponseModel>> UpdateOrder(OrderUpdateModel requestModel)
@@ -169,22 +194,22 @@ namespace Services.ServicesImpl
                         return response;
                     }
 
-                    decimal oldTotal = order.TotalSellingAmount;
+                    decimal oldTotal = order.TotalSellingPrice;
 
                     order.FruitId = requestModel.FruitId;
                     order.SellingPrice = requestModel.SellingPrice;
                     order.Quantity = requestModel.Quantity;
                     order.TruckId = truck.Id;
-                    order.TotalSellingAmount = requestModel.Quantity * requestModel.SellingPrice;
+                    order.TotalSellingPrice = requestModel.Quantity * requestModel.SellingPrice;
                     order.OrderDate = requestModel.OrderDate;
                     order.Deliverydate = requestModel.DeliveryDate;
-                    order.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
-                    decimal difference = oldTotal - order.TotalSellingAmount;  // 10-8=2, 8-10 = -2
+                    //order.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    decimal difference = oldTotal - order.TotalSellingPrice;  // 10-8=2, 8-10 = -2
 
-                    if (oldTotal != order.TotalSellingAmount)
+                    if (oldTotal != order.TotalSellingPrice)
                     {
                         // Adjust Customer Account
-                        await adminService.AdjustCustomerBalance(unitOfWork, order.CustomerId, oldTotal, order.TotalSellingAmount, OperationType.Order.ToString());
+                        await adminService.AdjustCustomerBalance(unitOfWork, order.CustomerId, oldTotal, order.TotalSellingPrice, OperationType.Order.ToString());
                     }
 
                     if (await unitOfWork.SaveChangesAsync())
@@ -272,10 +297,10 @@ namespace Services.ServicesImpl
                 }
                 else
                 {
-                    await adminService.AdjustCustomerBalance(unitOfWork, order.CustomerId, order.TotalSellingAmount, 0, OperationType.Order.ToString());
+                    await adminService.AdjustCustomerBalance(unitOfWork, order.CustomerId, order.TotalSellingPrice, 0, OperationType.Order.ToString());
                     order.IsActive = false;
-                    order.UpdatedDate = DateTime.UtcNow;
-                    order.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    //order.UpdatedDate = DateTime.UtcNow;
+                    //order.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
                     if (await unitOfWork.SaveChangesAsync())
                     {
                         response.Model = true;

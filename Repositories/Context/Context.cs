@@ -34,10 +34,14 @@ namespace Repositories.Context
 
         public virtual DbSet<AuditLog> AuditLog { get; set; }
 
-        //protected override void OnModelCreating(ModelBuilder modelBuilder)
-        //{
-        //  base.OnModelCreating(modelBuilder);
-        //  modelBuilder.Conventions.Remove<PluralizingTableNameConvention>();
-        //}
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            //base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Payment>()
+                .HasOne(p => p.Customer)
+                .WithMany() // Add .WithMany(c => c.Payments) if Customer has Payments collection
+                .HasForeignKey(p => p.EntityId);
+
+        }
     }
 }

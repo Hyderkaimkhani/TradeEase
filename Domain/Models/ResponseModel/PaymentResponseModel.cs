@@ -11,6 +11,7 @@ namespace Domain.Models.ResponseModel
         public DateTime PaymentDate { get; set; } = DateTime.Now;
         public string PaymentMethod { get; set; } = string.Empty;
         public string? Notes { get; set; } = string.Empty;
+        public bool IsActive { get; set; }
         public string PaymentBy { get; set; } = string.Empty;
     }
 }

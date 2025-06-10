@@ -1,4 +1,5 @@
-﻿using Domain.Models;
+﻿using Domain.Entities;
+using Domain.Models;
 using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
 using Repositories.Interfaces;
@@ -23,6 +24,7 @@ namespace Services.Interfaces
         Task<ResponseModel<string>> DeleteCustomer(int customerId);
 
         Task AdjustCustomerBalance(IUnitOfWork unitOfWork, int customerId, decimal oldAmount, decimal newAmount, string type);
+        Customer AdjustCustomerBalance(Customer customer, decimal oldAmount, decimal newAmount, string type);
         #endregion
 
         #region Fruit

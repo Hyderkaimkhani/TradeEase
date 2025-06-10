@@ -9,8 +9,8 @@
         public decimal Quantity { get; set; }
         public decimal PurchasePrice { get; set; }
         public decimal SellingPrice { get; set; }
-        public decimal TotalPurchaseAmount { get; set; }
-        public decimal TotalSellingAmount { get; set; }
+        public decimal TotalPurchasePrice { get; set; }
+        public decimal TotalSellingPrice { get; set; }
         public decimal ProfitLoss { get; set; }
         public decimal AmountRecieved { get; set; }
         public DateTime OrderDate { get; set; }

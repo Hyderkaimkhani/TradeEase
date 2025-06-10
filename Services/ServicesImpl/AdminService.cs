@@ -48,10 +48,10 @@ namespace Services.ServicesImpl
                     var customer = autoMapper.Map<Customer>(customerAddModel);
 
                     customer.IsActive = true;
-                    customer.CreatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
-                    customer.CreatedDate = DateTime.UtcNow;
-                    customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
-                    customer.UpdatedDate = DateTime.UtcNow;
+                    //customer.CreatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    //customer.CreatedDate = DateTime.UtcNow;
+                    //customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    //customer.UpdatedDate = DateTime.UtcNow;
 
                     var addedCustomer = await unitOfWork.AdminRepository.AddCustomer(customer);
                     if (addedCustomer != null)
@@ -98,7 +98,7 @@ namespace Services.ServicesImpl
                     {
                         autoMapper.Map(requestModel, customer);
 
-                        customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                        //customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
 
                         if (await unitOfWork.SaveChangesAsync())
                         {
@@ -207,8 +207,8 @@ namespace Services.ServicesImpl
                 else
                 {
                     customer.IsActive = false;
-                    customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
-                    customer.UpdatedDate = DateTime.UtcNow;
+                    //customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    //customer.UpdatedDate = DateTime.UtcNow;
 
                     if (await unitOfWork.SaveChangesAsync())
                     {
@@ -245,6 +245,27 @@ namespace Services.ServicesImpl
             }
         }
 
+        public Customer AdjustCustomerBalance(Customer customer, decimal oldAmount, decimal newAmount, string type)
+        {
+            if (customer == null) throw new Exception("Customer not found");
+
+            // Determine the balance change
+            decimal difference = newAmount - oldAmount;
+
+            // For orders/sales, receivable => increase balance
+            // For supplies/purchases, payable => decrease balance
+            if (type == OperationType.Order.ToString())
+            {
+                customer.CreditBalance += difference;
+            }
+            else if (type == OperationType.Supply.ToString())
+            {
+                customer.CreditBalance -= difference;
+            }
+
+            return customer;
+        }
+
         #endregion
 
         public async Task<ResponseModel<FruitResponseModel>> AddFruit(FruitAddModel requestModel)
@@ -265,8 +286,8 @@ namespace Services.ServicesImpl
                     var fruit = autoMapper.Map<Fruit>(requestModel);
 
                     fruit.IsActive = true;
-                    fruit.CreatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
-                    fruit.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    //fruit.CreatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    //fruit.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
 
                     var addedFruit = await unitOfWork.AdminRepository.AddFruit(fruit);
                     if (addedFruit != null)
@@ -325,7 +346,7 @@ namespace Services.ServicesImpl
                 {
                     autoMapper.Map(FruitAddModel, fruit);
 
-                    fruit.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    //fruit.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
 
                     if (await unitOfWork.SaveChangesAsync())
                     {

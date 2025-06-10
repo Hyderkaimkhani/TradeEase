@@ -52,7 +52,7 @@ namespace Repositories.RepositoriesImpl
 
             if (!string.IsNullOrEmpty(entityType))
             {
-                query = query.Where(c => c.EntityType.Equals(entityType, StringComparison.OrdinalIgnoreCase));
+                query = query.Where(c => c.EntityType.ToLower() == entityType.ToLower());
             }
 
             var customers  = await query.ToListAsync();
@@ -64,7 +64,7 @@ namespace Repositories.RepositoriesImpl
         {
 
             var customers = await _context.Set<Customer>().AsNoTracking()
-                .Where(c => c.EntityType.Equals(entityType, StringComparison.OrdinalIgnoreCase))
+                .Where(c => c.EntityType.ToLower() == entityType.ToLower())
                 .Where(c => c.IsActive)
                 .Select(c => new DropDownModel
                 {

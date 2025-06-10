@@ -9,8 +9,8 @@
         public decimal Quantity { get; set; }
         public decimal PurchasePrice { get; set; }
         public decimal SellingPrice { get; set; }
-        public decimal TotalPurchaseAmount { get; set; } // Quantity*PurchasePrice
-        public decimal TotalSellingAmount { get; set; } // Quantity*SellingPrice
+        public decimal TotalPurchasePrice { get; set; } // Quantity*PurchasePrice
+        public decimal TotalSellingPrice { get; set; } // Quantity*SellingPrice
         public decimal ProfitLoss { get; set; } // TotalSellingAmount-TotalPurchaseAmount                 
         public decimal AmountReceived { get; set; }
         public DateTime OrderDate { get; set; } = DateTime.Now;

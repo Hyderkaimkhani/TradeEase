@@ -43,7 +43,7 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<List<Order>> GetUnpaidOrders(int? customerId)
         {
-            var query = _context.Set<Order>().AsNoTracking().Where(x=> x.PaymentStatus != PaymentStatus.Paid.ToString() && x.IsActive);
+            var query = _context.Set<Order>().Where(x=> x.PaymentStatus != PaymentStatus.Paid.ToString() && x.IsActive);
 
             if (customerId.HasValue)
                 query = query.Where(x => x.CustomerId == customerId.Value);

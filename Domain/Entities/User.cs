@@ -27,7 +27,6 @@
             Email = string.Empty;
             Password = string.Empty;
             Status = string.Empty;
-            UserRole = new UserRole();
         }
     }
 }

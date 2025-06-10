@@ -21,6 +21,12 @@ namespace Repositories.RepositoriesImpl
             return await Task.FromResult(supply.Entity!);
         }
 
+        public async Task<Supply> UpdateSupply(Supply entity)
+        {
+            var supply = _context.Supply.Update(entity);
+            return await Task.FromResult(supply.Entity!);
+        }
+
         public async Task<List<Supply>> GetAllSupplies()
         {
             var supplies = await _context.Set<Supply>().AsNoTracking()
@@ -55,7 +61,7 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<List<Supply>> GetUnpaidSupplies(int? supplierId)
         {
-            var query = _context.Set<Supply>().AsNoTracking().Where(x => x.PaymentStatus != PaymentStatus.Paid.ToString() && x.IsActive);
+            var query = _context.Set<Supply>().Where(x => x.PaymentStatus != PaymentStatus.Paid.ToString() && x.IsActive);
 
             if (supplierId.HasValue)
                 query = query.Where(x => x.SupplierId == supplierId.Value);

@@ -28,7 +28,7 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<PaginatedResponseModel<Payment>> GetPayments(int page, int pageSize, int? entityId, DateTime? paymentDate = null)
         {
-            var query = _context.Set<Payment>().AsNoTracking().Where(x => x.IsActive);
+            var query = _context.Set<Payment>().AsNoTracking();
 
             if (paymentDate.HasValue)
                 query = query.Where(x => x.PaymentDate == paymentDate.Value);

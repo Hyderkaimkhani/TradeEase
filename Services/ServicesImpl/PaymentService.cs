@@ -50,23 +50,24 @@ namespace Services.ServicesImpl
                     PaymentDate = requestModel.PaymentDate,
                     PaymentMethod = requestModel.PaymentMethod,
                     Notes = requestModel.Notes,
-                    CreatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub),
-                    UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub)
                 };
 
                 payment = await unitOfWork.PaymentRepository.AddPayment(payment);
 
                 await unitOfWork.SaveChangesAsync();
-
                 decimal remainingAmount = requestModel.Amount;
 
                 if (requestModel.EntityType == EntityType.Customer.ToString())
                 {
+                    if (customer.CreditBalance < 0)
+                    {
+                        remainingAmount -= customer.CreditBalance; // If customer has credit balance, add it to remaining amount to allocate
+                    }
                     var orders = await unitOfWork.OrderRepository.GetUnpaidOrders(requestModel.EntityId);
 
                     foreach (var order in orders)
                     {
-                        var remainingDue = order.TotalSellingAmount - order.AmountReceived;
+                        var remainingDue = order.TotalSellingPrice - order.AmountReceived;
 
                         if (remainingAmount <= 0) break;
 
@@ -78,21 +79,23 @@ namespace Services.ServicesImpl
                             ReferenceType = OperationType.Order.ToString(),
                             ReferenceId = order.Id,
                             AllocatedAmount = toAllocate,
-                            CreatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub),
-                            UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub)
                         };
 
                         await unitOfWork.PaymentRepository.AddPaymentAllocation(paymentAllocation);
                         order.AmountReceived += toAllocate;
-                        order.PaymentStatus = order.AmountReceived >= order.TotalSellingAmount ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
+                        order.PaymentStatus = order.AmountReceived >= order.TotalSellingPrice ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
 
                         remainingAmount -= toAllocate;
                     }
 
-                    customer.CreditBalance += remainingAmount;
+                    customer.CreditBalance -= requestModel.Amount;
                 }
                 else if (requestModel.EntityType == EntityType.Supplier.ToString())
                 {
+                    if(customer.CreditBalance > 0)
+                    {
+                        remainingAmount += customer.CreditBalance; // If customer has credit balance, add it to remaining amount to allocate
+                    }
                     var supplies = await unitOfWork.SupplyRepository.GetUnpaidSupplies(requestModel.EntityId);
 
                     foreach (var supply in supplies)
@@ -109,8 +112,6 @@ namespace Services.ServicesImpl
                             ReferenceType = OperationType.Supply.ToString(),
                             ReferenceId = supply.Id,
                             AllocatedAmount = toAllocate,
-                            CreatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub),
-                            UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub)
                         };
                         await unitOfWork.PaymentRepository.AddPaymentAllocation(paymentAllocation);
 
@@ -119,8 +120,7 @@ namespace Services.ServicesImpl
 
                         remainingAmount -= toAllocate;
                     }
-
-                    customer.CreditBalance -= remainingAmount;
+                    customer.CreditBalance += requestModel.Amount;  // 
                 }
 
                 if (await unitOfWork.SaveChangesAsync())
@@ -158,8 +158,8 @@ namespace Services.ServicesImpl
                     return response;
                 }
 
-                decimal originalAmount = payment.Amount;
-                decimal originalAllocated = payment.PaymentAllocations.Sum(x => x.AllocatedAmount);
+                decimal oldAmount = payment.Amount;
+                decimal originalAllocated = payment.PaymentAllocations.Where(x => x.IsActive == true).Sum(x => x.AllocatedAmount);
 
                 // Reverse Allocations
                 foreach (var alloc in payment.PaymentAllocations)
@@ -171,7 +171,7 @@ namespace Services.ServicesImpl
                         {
                             order.AmountReceived -= alloc.AllocatedAmount;
                             order.PaymentStatus = order.AmountReceived == 0 ? PaymentStatus.Unpaid.ToString()
-                                                 : order.AmountReceived < order.TotalSellingAmount ? PaymentStatus.Partial.ToString()
+                                                 : order.AmountReceived < order.TotalSellingPrice ? PaymentStatus.Partial.ToString()
                                                  : PaymentStatus.Paid.ToString();
                         }
                     }
@@ -188,7 +188,7 @@ namespace Services.ServicesImpl
                     }
 
                     alloc.IsActive = false;
-                    alloc.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                    //alloc.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
                 }
 
                 // Update Payment info
@@ -196,18 +196,24 @@ namespace Services.ServicesImpl
                 payment.PaymentDate = requestModel.PaymentDate;
                 payment.PaymentMethod = requestModel.PaymentMethod;
                 payment.Notes = requestModel.Notes;
-                payment.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
-                payment.UpdatedDate = DateTime.Now;
+                //payment.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                //payment.UpdatedDate = DateTime.Now;
+
+                await unitOfWork.SaveChangesAsync();        // save, to get latest status of supplies. Reverse Allocations not reflect in db otherwise
 
                 decimal remainingAmount = requestModel.Amount;
 
                 if (payment.EntityType == EntityType.Customer.ToString())
                 {
+                    if (customer.CreditBalance < 0)
+                    {
+                        remainingAmount -= customer.CreditBalance; // If customer has credit balance, add it to remaining amount to allocate
+                    }
                     var orders = await unitOfWork.OrderRepository.GetUnpaidOrders(payment.EntityId);
 
                     foreach (var order in orders)
                     {
-                        var due = order.TotalSellingAmount - order.AmountReceived;
+                        var due = order.TotalSellingPrice - order.AmountReceived;
                         if (remainingAmount <= 0) break;
 
                         var toAllocate = Math.Min(remainingAmount, due);
@@ -221,17 +227,24 @@ namespace Services.ServicesImpl
                         });
 
                         order.AmountReceived += toAllocate;
-                        order.PaymentStatus = order.AmountReceived >= order.TotalSellingAmount
+                        order.PaymentStatus = order.AmountReceived >= order.TotalSellingPrice
                                               ? PaymentStatus.Paid.ToString()
                                               : PaymentStatus.Partial.ToString();
 
                         remainingAmount -= toAllocate;
                     }
 
-                    customer.CreditBalance += (remainingAmount - (originalAmount - originalAllocated));
+                    //customer.CreditBalance += (requestModel.Amount - (oldAmount - originalAllocated));
+                    decimal difference = requestModel.Amount - oldAmount;
+                    customer.CreditBalance -= difference;
                 }
                 else if (payment.EntityType == EntityType.Supplier.ToString())
                 {
+                    if (customer.CreditBalance > 0)
+                    {
+                        remainingAmount += customer.CreditBalance; // If customer has credit balance, add it to remaining amount to allocate
+                    }
+
                     var supplies = await unitOfWork.SupplyRepository.GetUnpaidSupplies(payment.EntityId);
 
                     foreach (var supply in supplies)
@@ -256,8 +269,8 @@ namespace Services.ServicesImpl
 
                         remainingAmount -= toAllocate;
                     }
-
-                    customer.CreditBalance -= (remainingAmount - (originalAmount - originalAllocated));
+                    decimal difference = requestModel.Amount - oldAmount;
+                    customer.CreditBalance += difference;
                 }
             }
             else
@@ -265,7 +278,7 @@ namespace Services.ServicesImpl
                 payment.PaymentDate = requestModel.PaymentDate;
                 payment.PaymentMethod = requestModel.PaymentMethod;
                 payment.Notes = requestModel.Notes;
-                payment.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                //payment.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
             }
 
             if (await unitOfWork.SaveChangesAsync())
@@ -297,7 +310,6 @@ namespace Services.ServicesImpl
 
                 return response;
             }
-
         }
 
         public async Task<PaginatedResponseModel<PaymentResponseModel>> GetPayments(int page, int pageSize, int? customerId)
@@ -356,7 +368,7 @@ namespace Services.ServicesImpl
                     {
                         order.AmountReceived -= alloc.AllocatedAmount;
                         order.PaymentStatus = order.AmountReceived == 0 ? PaymentStatus.Unpaid.ToString()
-                                             : order.AmountReceived < order.TotalSellingAmount ? PaymentStatus.Partial.ToString()
+                                             : order.AmountReceived < order.TotalSellingPrice ? PaymentStatus.Partial.ToString()
                                              : PaymentStatus.Paid.ToString();
                     }
                 }
@@ -373,24 +385,19 @@ namespace Services.ServicesImpl
                 }
 
                 alloc.IsActive = false;
-                alloc.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
             }
 
             // Reverse customer balance
             if (payment.EntityType == EntityType.Customer.ToString())
             {
-                var unallocated = payment.Amount - allocatedTotal;
-                customer.CreditBalance -= unallocated;
+                customer.CreditBalance += payment.Amount;
             }
             else if (payment.EntityType == EntityType.Supplier.ToString())
             {
-                var unallocated = payment.Amount - allocatedTotal;
-                customer.CreditBalance += unallocated;
+                customer.CreditBalance -= payment.Amount;
             }
 
             payment.IsActive = false;
-            payment.UpdatedDate = DateTime.Now;
-            payment.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
 
             if (await unitOfWork.SaveChangesAsync())
             {

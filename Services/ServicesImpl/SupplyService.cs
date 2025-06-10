@@ -5,10 +5,8 @@ using Domain.Models;
 using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
 using Microsoft.Extensions.Configuration;
-using Org.BouncyCastle.Asn1.X509;
 using Repositories.Interfaces;
 using Services.Interfaces;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Services.ServicesImpl
 {
@@ -38,6 +36,14 @@ namespace Services.ServicesImpl
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<SupplyResponseModel>();
+
+                var supplier = await unitOfWork.AdminRepository.GetCustomer(requestModel.SupplierId);
+                if (supplier == null || supplier.EntityType != EntityType.Supplier.ToString())
+                {
+                    response.Message = $"{EntityType.Supplier.ToString()} not found or mismatched";
+                    response.IsError = true;
+                    return response;
+                }
 
                 // Get Truck if not exists add
                 Truck? truck = await unitOfWork.AdminRepository.GetTruck(requestModel.TruckNumber);
@@ -71,6 +77,42 @@ namespace Services.ServicesImpl
                 if (addedSupply != null)
                 {
                     // Adjust Supplier Account
+                    if (supplier.CreditBalance > 0) // If supplier has paid in advance, try to allocate from it
+                    {
+                        var allocatable = Math.Min(supplier.CreditBalance, supply.TotalPrice);
+                        if (allocatable > 0)
+                        {
+                            var payment = new Payment
+                            {
+                                EntityType = EntityType.Supplier.ToString(),
+                                EntityId = supply.SupplierId,
+                                Amount = allocatable,
+                                PaymentDate = DateTime.Now,
+                                PaymentMethod = "CreditBalance Auto",
+                                Notes = "Auto allocation from Credit Balance",
+                                CreatedBy = user,
+                                UpdatedBy = user
+                            };
+
+                            await unitOfWork.PaymentRepository.AddPayment(payment);
+                            await unitOfWork.SaveChangesAsync();
+
+                            var allocation = new PaymentAllocation
+                            {
+                                PaymentId = payment.Id,
+                                ReferenceType = OperationType.Supply.ToString(),
+                                ReferenceId = supply.Id,
+                                AllocatedAmount = allocatable
+                            };
+
+                            await unitOfWork.PaymentRepository.AddPaymentAllocation(allocation);
+
+                            supply.AmountPaid += allocatable;
+                            supply.PaymentStatus = supply.AmountPaid >= supply.TotalPrice ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
+                            supplier.CreditBalance -= allocatable;
+                        }
+                    }
+                    
                     await adminService.AdjustCustomerBalance(unitOfWork, supply.SupplierId, 0, supply.TotalPrice, OperationType.Supply.ToString());
 
                     if (await unitOfWork.SaveChangesAsync())
@@ -102,11 +144,16 @@ namespace Services.ServicesImpl
             // Don't allow to update truck if Supply has allocated TruckAssignmentId
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
-
                 var supply = await unitOfWork.SupplyRepository.GetSupply(requestModel.Id);
 
                 if (supply != null)
                 {
+                    if (supply.PaymentStatus != PaymentStatus.Unpaid.ToString() && (supply.Quantity != requestModel.Quantity || supply.PurchasePrice != requestModel.PurchasePrice))
+                    {
+                        response.IsError = true;
+                        response.Message = "Cannot update Supply, payment already made against this supply.";
+                        return response;
+                    }
                     Truck? truck = await unitOfWork.AdminRepository.GetTruck(requestModel.TruckNumber);
 
                     if (truck == null)
@@ -249,8 +296,8 @@ namespace Services.ServicesImpl
                     {
                         await adminService.AdjustCustomerBalance(unitOfWork, supply.SupplierId, supply.TotalPrice, 0, OperationType.Supply.ToString());
                         supply.IsActive = false;
-                        supply.UpdatedDate = DateTime.UtcNow;
-                        supply.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
+                        //supply.UpdatedDate = DateTime.UtcNow;
+                        //supply.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
                         if (await unitOfWork.SaveChangesAsync())
                         {
                             response.Model = true;
@@ -262,6 +309,12 @@ namespace Services.ServicesImpl
                             response.Message = "Unable to delete Supply";
                             response.Model = false;
                         }
+                    }
+                    else
+                    {
+                        response.IsError = true;
+                        response.Message = "Cannot delete Supply, payment already made against this supply.";
+                        response.Model = false;
                     }
                 }
                 return response;
