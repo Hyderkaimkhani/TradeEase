@@ -1,5 +1,6 @@
 ﻿CREATE TABLE [Order] (
     Id                  INT IDENTITY(1,1) PRIMARY KEY,
+    OrderNumber         VARCHAR(20) NOT NULL,
     CustomerId          INT NOT NULL,
     TruckId             INT NOT NULL,
     FruitId             INT NOT NULL,

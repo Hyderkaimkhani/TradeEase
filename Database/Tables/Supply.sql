@@ -1,5 +1,6 @@
 ﻿CREATE TABLE Supply (
     Id             INT IDENTITY(1,1) PRIMARY KEY,
+    SupplyNumber   VARCHAR(20) NOT NULL,
     SupplierId     INT NOT NULL FOREIGN KEY REFERENCES Customer(Id),
     FruitId        INT NOT NULL FOREIGN KEY REFERENCES Fruit(Id),
     TruckId        INT NULL FOREIGN KEY REFERENCES Truck(Id),
