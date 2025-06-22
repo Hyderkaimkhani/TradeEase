@@ -48,7 +48,6 @@ namespace Services.ServicesImpl
                 // 1. Get or create Truck
                 Truck? truck = await unitOfWork.AdminRepository.GetTruck(requestModel.TruckNumber);
 
-                // I think If truck not exists , should not create Order
                 if (truck == null)
                 {
                     var truckEntity = new Truck
@@ -64,7 +63,7 @@ namespace Services.ServicesImpl
                 var truckAssignment = new TruckAssignment
                 {
                     TruckId = truck.Id,
-                    AssignedDate = requestModel.OrderDate,
+                    AssignmentDate = requestModel.OrderDate,
                 };
                 truckAssignment = await unitOfWork.AdminRepository.AddTruckAssignment(truckAssignment);
 
@@ -80,7 +79,7 @@ namespace Services.ServicesImpl
 
                 foreach (var supply in supplies)
                 {
-                    supply.TruckAssignmentId = truckAssignment.Id;
+                    supply.TruckAssignment = truckAssignment;
                 }
 
                 // 4. Calculate weighted purchase price from supplies
@@ -103,7 +102,8 @@ namespace Services.ServicesImpl
                 order.TotalPurchasePrice = totalPurchasePrice;
                 order.TotalSellingPrice = requestModel.Quantity * requestModel.SellingPrice;
                 order.ProfitLoss = order.TotalSellingPrice - order.TotalPurchasePrice;
-                order.TruckAssignmentId = truckAssignment.Id;
+                order.TruckAssignment = truckAssignment;
+                order.OrderNumber = $"ORD-{Utilities.GenerateRandomNumber()}"; // Generate unique order number
 
                 order.TruckId = truck.Id;
                 order.IsActive = true;
@@ -142,7 +142,7 @@ namespace Services.ServicesImpl
 
                             order.AmountReceived += allocatable;
                             order.PaymentStatus = order.AmountReceived >= order.TotalSellingPrice ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
-                            customer.CreditBalance += allocatable;  // Move towards zero
+                            //customer.CreditBalance += allocatable;  // Move towards zero
                         }
 
                     }
@@ -173,7 +173,7 @@ namespace Services.ServicesImpl
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
-                // Restrict to change price and quantity if payment made against this Order.
+                
                 var response = new ResponseModel<OrderResponseModel>();
 
                 var order = await unitOfWork.OrderRepository.GetOrder(requestModel.Id);
@@ -187,12 +187,22 @@ namespace Services.ServicesImpl
                 {
                     Truck? truck = await unitOfWork.AdminRepository.GetTruck(requestModel.TruckNumber);
 
+                    // Restrict to change price and quantity if payment made against this Order.
+                    if (order.PaymentStatus != PaymentStatus.Unpaid.ToString() && (order.Quantity != requestModel.Quantity || order.SellingPrice != requestModel.SellingPrice))
+                    {
+                        response.IsError = true;
+                        response.Message = "Cannot update Order Quantity or Price, payment already made against this order.";
+                        return response;
+                    }
+
                     if (truck == null)
                     {
                         response.IsError = true;
-                        response.Message = "Truck not exists. Please add Truck first and its Supply";
+                        response.Message = "Truck not exists. Please add Truck first and assign Supply";
                         return response;
                     }
+
+                    //if truck number updated update the truck assignment + update the purchase price according to that
 
                     decimal oldTotal = order.TotalSellingPrice;
 
@@ -201,9 +211,8 @@ namespace Services.ServicesImpl
                     order.Quantity = requestModel.Quantity;
                     order.TruckId = truck.Id;
                     order.TotalSellingPrice = requestModel.Quantity * requestModel.SellingPrice;
-                    order.OrderDate = requestModel.OrderDate;
+                    //order.OrderDate = requestModel.OrderDate;
                     order.Deliverydate = requestModel.DeliveryDate;
-                    //order.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
                     decimal difference = oldTotal - order.TotalSellingPrice;  // 10-8=2, 8-10 = -2
 
                     if (oldTotal != order.TotalSellingPrice)
@@ -284,9 +293,7 @@ namespace Services.ServicesImpl
                 var order = await unitOfWork.OrderRepository.GetOrder(orderId);
 
                 // Optional: Check if payment is allocated, prevent delete if necessary
-                //var hasPayments = await _context.PaymentAllocations
-                //    .AnyAsync(p => p.OrderId == orderId);
-
+                
                 //if (hasPayments)
                 //    throw new InvalidOperationException("Cannot delete order with allocated payments.");
 
@@ -297,10 +304,15 @@ namespace Services.ServicesImpl
                 }
                 else
                 {
+                    var paymentAllocations = await unitOfWork.PaymentRepository.GetPaymentAllocation(OperationType.Order.ToString(), orderId);
+
+                    foreach (var alloc in paymentAllocations)
+                    {
+                        alloc.IsActive = false;
+                    }
+
                     await adminService.AdjustCustomerBalance(unitOfWork, order.CustomerId, order.TotalSellingPrice, 0, OperationType.Order.ToString());
                     order.IsActive = false;
-                    //order.UpdatedDate = DateTime.UtcNow;
-                    //order.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
                     if (await unitOfWork.SaveChangesAsync())
                     {
                         response.Model = true;

@@ -3,6 +3,7 @@
     public class Order : AuditableEntity
     {
         public int Id { get; set; }
+        public string OrderNumber { get; set; }
         public int CustomerId { get; set; }
         public int TruckId { get; set; }
         public int FruitId { get; set; }
@@ -20,9 +21,9 @@
         public int? TruckAssignmentId { get; set; }
         public string? Notes { get; set; }
 
-        public Customer Customer { get; set; } = new Customer();
-        public Truck Truck { get; set; } = new Truck();
-        public Fruit Fruit { get; set; } = new Fruit();
+        public Customer Customer { get; set; }
+        public Truck Truck { get; set; }
+        public Fruit Fruit { get; set; }
         public TruckAssignment? TruckAssignment { get; set; }
     }
 }

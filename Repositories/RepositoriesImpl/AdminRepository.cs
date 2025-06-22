@@ -96,6 +96,12 @@ namespace Repositories.RepositoriesImpl
             return await Task.FromResult(truckAssignment.Entity);
         }
 
+        public async Task<TruckAssignment?> GetTruckAssignmen(int truckId)
+        {
+            var truckAssignment = await _context.Set<TruckAssignment>().FirstOrDefaultAsync(x => x.TruckId== truckId);
+            return truckAssignment;
+        }
+
         public async Task<List<Fruit>> GetFruits()
         {
             var fruits = await _context.Set<Fruit>().AsNoTracking().ToListAsync();

@@ -57,5 +57,11 @@ namespace Repositories.RepositoriesImpl
             var paymentAllocation = _context.PaymentAllocation.Add(entity);
             return await Task.FromResult(paymentAllocation.Entity!);
         }
+
+        public async Task<List<PaymentAllocation>> GetPaymentAllocation(string referenctType ,int referenceId)
+        {
+            var paymentAllocations = await _context.PaymentAllocation.Where(x=> x.IsActive && x.ReferenceType == referenctType && x.ReferenceId == referenceId ).ToListAsync();
+            return paymentAllocations;
+        }
     }
 }

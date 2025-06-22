@@ -7,6 +7,7 @@ using Domain.Models.ResponseModel;
 using Microsoft.Extensions.Configuration;
 using Repositories.Interfaces;
 using Services.Interfaces;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace Services.ServicesImpl
 {
@@ -32,7 +33,6 @@ namespace Services.ServicesImpl
 
         public async Task<ResponseModel<SupplyResponseModel>> AddSupply(SupplyAddModel requestModel)
         {
-            var user = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<SupplyResponseModel>();
@@ -53,8 +53,6 @@ namespace Services.ServicesImpl
                     var truckEntity = new Truck
                     {
                         TruckNumber = requestModel.TruckNumber,
-                        CreatedBy = user,
-                        UpdatedBy = user,
                         IsActive = true
                     };
                     truck = await unitOfWork.AdminRepository.AddTruck(truckEntity);
@@ -64,19 +62,13 @@ namespace Services.ServicesImpl
                 var supply = autoMapper.Map<Supply>(requestModel);
 
                 supply.TotalPrice = requestModel.Quantity * requestModel.PurchasePrice;
-                //supply.PaymentStatus = requestModel.AmountPaid == 0
-                //    ? "Unpaid"
-                //    : (requestModel.AmountPaid < supply.TotalPrice ? "Partial" : "Paid");
-
+                supply.SupplyNumber = "SUP-" + Utilities.GenerateRandomNumber();
                 supply.TruckId = truck.Id;
                 supply.IsActive = true;
-                supply.CreatedBy = user;
-                supply.UpdatedBy = user;
 
                 var addedSupply = await unitOfWork.SupplyRepository.AddSupply(supply);
                 if (addedSupply != null)
                 {
-                    // Adjust Supplier Account
                     if (supplier.CreditBalance > 0) // If supplier has paid in advance, try to allocate from it
                     {
                         var allocatable = Math.Min(supplier.CreditBalance, supply.TotalPrice);
@@ -90,8 +82,6 @@ namespace Services.ServicesImpl
                                 PaymentDate = DateTime.Now,
                                 PaymentMethod = "CreditBalance Auto",
                                 Notes = "Auto allocation from Credit Balance",
-                                CreatedBy = user,
-                                UpdatedBy = user
                             };
 
                             await unitOfWork.PaymentRepository.AddPayment(payment);
@@ -109,15 +99,15 @@ namespace Services.ServicesImpl
 
                             supply.AmountPaid += allocatable;
                             supply.PaymentStatus = supply.AmountPaid >= supply.TotalPrice ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
-                            supplier.CreditBalance -= allocatable;
+                            //supplier.CreditBalance -= allocatable; // will adjust in AdjustCustomerBalance
                         }
                     }
-                    
+
                     await adminService.AdjustCustomerBalance(unitOfWork, supply.SupplierId, 0, supply.TotalPrice, OperationType.Supply.ToString());
 
                     if (await unitOfWork.SaveChangesAsync())
                     {
-                        response.Message = "Supply added successfuly";
+                        response.Message = "Supply added successfully";
                         response.Model = autoMapper.Map<SupplyResponseModel>(addedSupply);
                     }
                     else
@@ -138,31 +128,36 @@ namespace Services.ServicesImpl
 
         public async Task<ResponseModel<SupplyResponseModel>> UpdateSupply(SupplyUpdateModel requestModel)
         {
-            var user = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
             var response = new ResponseModel<SupplyResponseModel>();
-            // Restrict to change price and quantity if payment made against this supply.
-            // Don't allow to update truck if Supply has allocated TruckAssignmentId
+
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var supply = await unitOfWork.SupplyRepository.GetSupply(requestModel.Id);
 
                 if (supply != null)
                 {
+                    //Restrict to change price and quantity if payment made against this supply.
                     if (supply.PaymentStatus != PaymentStatus.Unpaid.ToString() && (supply.Quantity != requestModel.Quantity || supply.PurchasePrice != requestModel.PurchasePrice))
                     {
                         response.IsError = true;
-                        response.Message = "Cannot update Supply, payment already made against this supply.";
+                        response.Message = "Cannot update Supply Quantity or Price, payment already made against this supply.";
                         return response;
                     }
-                    Truck? truck = await unitOfWork.AdminRepository.GetTruck(requestModel.TruckNumber);
+                    //Don't allow to update truck if Supply has allocated TruckAssignmentId
+                    if (supply.Truck.TruckNumber != requestModel.TruckNumber && supply.TruckAssignmentId != null)
+                    {
+                        response.IsError = true;
+                        response.Message = "Cannot update Supply TruckNumber, Truck already assigned";
+                        return response;
+                    }
 
+                    Truck? truck = await unitOfWork.AdminRepository.GetTruck(requestModel.TruckNumber);
+                    
                     if (truck == null)
                     {
                         var truckEntity = new Truck
                         {
                             TruckNumber = requestModel.TruckNumber,
-                            CreatedBy = user,
-                            UpdatedBy = user,
                             IsActive = true
                         };
                         truck = await unitOfWork.AdminRepository.AddTruck(truckEntity);
@@ -177,7 +172,6 @@ namespace Services.ServicesImpl
                     supply.TruckId = truck.Id;
                     supply.Notes = requestModel.Notes;
                     supply.SupplyDate = requestModel.SupplyDate;
-                    supply.UpdatedBy = user;
 
                     //decimal difference = oldTotal - supply.TotalPrice; // 5-3 =2 , 5-10 =-5
 
@@ -196,9 +190,6 @@ namespace Services.ServicesImpl
                         response.IsError = true;
                         response.Message = "Unable to update Supply.";
                     }
-                    // handle case if current CreditBalance is positive then pay for this supply 
-                    // just handle the Payment Status and amount paid
-
                 }
                 else
                 {
@@ -211,7 +202,6 @@ namespace Services.ServicesImpl
 
         public async Task<ResponseModel<List<SupplyResponseModel>>> GetAllSupplies()
         {
-            var user = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<List<SupplyResponseModel>>();
@@ -256,7 +246,6 @@ namespace Services.ServicesImpl
 
         public async Task<PaginatedResponseModel<SupplyResponseModel>> GetSupplies(int page, int pageSize, int? fruitId, int? supplierId)
         {
-            var user = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new PaginatedResponseModel<SupplyResponseModel>();
@@ -296,12 +285,10 @@ namespace Services.ServicesImpl
                     {
                         await adminService.AdjustCustomerBalance(unitOfWork, supply.SupplierId, supply.TotalPrice, 0, OperationType.Supply.ToString());
                         supply.IsActive = false;
-                        //supply.UpdatedDate = DateTime.UtcNow;
-                        //supply.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
                         if (await unitOfWork.SaveChangesAsync())
                         {
                             response.Model = true;
-                            response.Message = "Supply deleted successfuly.";
+                            response.Message = "Supply deleted successfully.";
                         }
                         else
                         {

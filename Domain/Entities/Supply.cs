@@ -3,6 +3,7 @@
     public class Supply : AuditableEntity
     {
         public int Id { get; set; }
+        public string SupplyNumber { get; set; } = string.Empty;
         public int SupplierId { get; set; }
         public int FruitId { get; set; }
         public int? TruckId { get; set; }

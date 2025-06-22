@@ -19,7 +19,7 @@ namespace Repositories.Interfaces
 
         Task<List<Supply>> GetUnpaidSupplies(int? supplierId);
 
-        Task<List<Supply>> GetSuppliesByCustomer(int supplierId, string? paymentStatus = null);
+        Task<List<Supply>> GetSuppliesBySupplier(int supplierId, string? paymentStatus = null);
 
     }
 }

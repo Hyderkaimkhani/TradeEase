@@ -42,7 +42,7 @@ namespace Api.Middleware
                                 {
                                     Method = httpContext.Request.Method,
                                     Path = url,
-                                    ResponseBody = JsonSerializer.Serialize(requestTokens)
+                                    RequestBody = JsonSerializer.Serialize(requestTokens)
                                 });
                             }
                             else
@@ -51,7 +51,7 @@ namespace Api.Middleware
                                 {
                                     Method = httpContext.Request.Method,
                                     Path = url,
-                                    ResponseBody = JsonSerializer.Serialize(requestBodyText)
+                                    RequestBody = JsonSerializer.Serialize(requestBodyText)
                                 });
                             }
                         }

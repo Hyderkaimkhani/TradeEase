@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using NUlid;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -161,6 +160,12 @@ namespace Common
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             return new string(Enumerable.Repeat(chars, length)
               .Select(s => s[random.Next(s.Length)]).ToArray());
+        }
+
+        public static string GenerateRandomNumber()
+        {
+            var ulid = Ulid.NewUlid().ToString().Substring(0, 10); // ULID is time-sortable and unique
+            return ulid;
         }
     }
 }

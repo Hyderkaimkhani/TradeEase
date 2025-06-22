@@ -102,11 +102,11 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<Supply?> GetSupply(int id)
         {
-            var supply = await _context.Set<Supply>().FirstOrDefaultAsync(x => x.Id == id);
+            var supply = await _context.Set<Supply>().Include(x=>x.Truck).Include(x=>x.Fruit).FirstOrDefaultAsync(x => x.Id == id);
             return supply;
         }
 
-        public async Task<List<Supply>> GetSuppliesByCustomer(int supplierId, string? paymentStatus = null)
+        public async Task<List<Supply>> GetSuppliesBySupplier(int supplierId, string? paymentStatus = null)
         {
             var query = _context.Set<Supply>().AsNoTracking().Where(x => x.SupplierId == supplierId && x.IsActive);
 

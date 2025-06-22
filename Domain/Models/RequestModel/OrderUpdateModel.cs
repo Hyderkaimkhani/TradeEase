@@ -6,6 +6,7 @@ namespace Domain.Models.RequestModel
     {
         public int Id { get; set; }
 
+        [Required]
         public int FruitId { get; set; }
 
         [Required]
@@ -18,7 +19,7 @@ namespace Domain.Models.RequestModel
         [Required]
         [Range(1, int.MaxValue, ErrorMessage = "SellingPrice must be at least 1")]
         public decimal SellingPrice { get; set; }
-        public DateTime OrderDate { get; set; } = DateTime.Now;
+        //public DateTime OrderDate { get; set; } = DateTime.Now;
         public DateTime? DeliveryDate { get; set; }
 
         [RegularExpression("^(Pending|Dispatched|Delivered|Canceled)$", ErrorMessage = "Invalid Status")]
