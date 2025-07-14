@@ -7,6 +7,7 @@
         public int SupplierId { get; set; }
         public int FruitId { get; set; }
         public int? TruckId { get; set; }
+        public string TruckNumber { get; set; } = string.Empty;
         public decimal Quantity { get; set; }
         public decimal PurchasePrice { get; set; }
         public decimal TotalPrice { get; set; }

@@ -22,7 +22,7 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<Payment?> GetPayment(int id)
         {
-            var payment = await _context.Set<Payment>().Include(p => p.PaymentAllocations).FirstOrDefaultAsync(x => x.Id == id);
+            var payment = await _context.Set<Payment>().Include(p => p.PaymentAllocations).Include(p=>p.Customer).FirstOrDefaultAsync(x => x.Id == id);
             return payment;
         }
 

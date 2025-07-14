@@ -45,7 +45,9 @@ namespace API.Controllers
         }
 
         [HttpGet("")]
-        public async Task<IActionResult> GetOrders([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] int? fruitId = null, [FromQuery] int? customerId = null)
+        public async Task<IActionResult> GetOrders([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] int? fruitId = null, [FromQuery] int? customerId = null,
+                                                    [FromQuery] string? orderNumber = null, [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null,
+                                                    [FromQuery] string? status = null, [FromQuery] string? paymentStatus = null)
         {
             var result = await orderService.GetOrders(page, pageSize, fruitId, customerId);
             return Ok(result);
@@ -54,8 +56,8 @@ namespace API.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOrder(int id)
         {
-            var orders = await orderService.GetOrder(id);
-            return Ok(orders);
+            var order = await orderService.GetOrder(id);
+            return Ok(order);
         }
 
         [HttpDelete("{id}")]

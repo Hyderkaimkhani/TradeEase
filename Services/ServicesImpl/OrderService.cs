@@ -103,7 +103,7 @@ namespace Services.ServicesImpl
                 order.TotalSellingPrice = requestModel.Quantity * requestModel.SellingPrice;
                 order.ProfitLoss = order.TotalSellingPrice - order.TotalPurchasePrice;
                 order.TruckAssignment = truckAssignment;
-                order.OrderNumber = $"ORD-{Utilities.GenerateRandomNumber()}"; // Generate unique order number
+                order.OrderNumber = $"O-{Utilities.GenerateRandomNumber()}"; // Generate unique order number
 
                 order.TruckId = truck.Id;
                 order.IsActive = true;
@@ -211,6 +211,7 @@ namespace Services.ServicesImpl
                     order.Quantity = requestModel.Quantity;
                     order.TruckId = truck.Id;
                     order.TotalSellingPrice = requestModel.Quantity * requestModel.SellingPrice;
+                    order.Status = requestModel.Status;
                     //order.OrderDate = requestModel.OrderDate;
                     order.Deliverydate = requestModel.DeliveryDate;
                     decimal difference = oldTotal - order.TotalSellingPrice;  // 10-8=2, 8-10 = -2
@@ -279,7 +280,7 @@ namespace Services.ServicesImpl
                 else
                 {
                     response.Model = autoMapper.Map<List<OrderResponseModel>>(orders.Model);
-                    response.TotalCount = orders.Model.Count;
+                    response.TotalCount = orders.TotalCount;
                 }
                 return response;
             }

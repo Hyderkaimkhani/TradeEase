@@ -13,7 +13,7 @@ namespace Repositories.Interfaces
 
         Task<List<Customer>> GetCustomers(bool? isActive, string? entityType);
 
-        Task<List<DropDownModel>> GetCustomersDropDown(string entityType);
+        Task<List<DropDownModel>> GetCustomersDropDown(string? entityType);
         #endregion
 
         Task<Truck?> GetTruck(string truckNumber);

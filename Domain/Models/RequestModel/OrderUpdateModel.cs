@@ -23,7 +23,7 @@ namespace Domain.Models.RequestModel
         public DateTime? DeliveryDate { get; set; }
 
         [RegularExpression("^(Pending|Dispatched|Delivered|Canceled)$", ErrorMessage = "Invalid Status")]
-        public string? Status { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
         public string? Notes { get; set; }
     }
 }

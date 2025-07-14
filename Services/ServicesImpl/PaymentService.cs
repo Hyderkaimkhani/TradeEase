@@ -92,7 +92,7 @@ namespace Services.ServicesImpl
                 }
                 else if (requestModel.EntityType == EntityType.Supplier.ToString())
                 {
-                    if(customer.CreditBalance > 0)
+                    if (customer.CreditBalance > 0)
                     {
                         remainingAmount += customer.CreditBalance; // If customer has credit balance, add it to remaining amount to allocate
                     }
@@ -305,7 +305,41 @@ namespace Services.ServicesImpl
                 }
                 else
                 {
-                    response.Model = autoMapper.Map<PaymentResponseModel>(payment);
+                    var paymentModel = autoMapper.Map<PaymentResponseModel>(payment);
+
+                    foreach (var paymentAllocation in paymentModel.PaymentAllocations)
+                    {
+                        if (paymentAllocation.ReferenceType == OperationType.Order.ToString())
+                        {
+                            var order = await unitOfWork.OrderRepository.GetOrder(paymentAllocation.ReferenceId);
+                            if (order != null)
+                            {
+                                paymentAllocation.Number = order.OrderNumber;
+                                paymentAllocation.TruckNumber = order.TruckNumber;
+                                paymentAllocation.Price = order.SellingPrice;
+                                paymentAllocation.Quantity = order.Quantity;
+                                paymentAllocation.OperationDate = order.OrderDate;
+                                paymentAllocation.TotalPrice = order.TotalSellingPrice;
+                                paymentAllocation.PaymentStatus = order.PaymentStatus;
+
+                            }
+                        }
+                        else if (paymentAllocation.ReferenceType == OperationType.Supply.ToString())
+                        {
+                            var supply = await unitOfWork.SupplyRepository.GetSupply(paymentAllocation.ReferenceId);
+                            if (supply != null)
+                            {
+                                paymentAllocation.Number = supply.SupplyNumber;
+                                paymentAllocation.TruckNumber = supply.TruckNumber;
+                                paymentAllocation.Price = supply.PurchasePrice;
+                                paymentAllocation.Quantity = supply.Quantity;
+                                paymentAllocation.OperationDate = supply.SupplyDate;
+                                paymentAllocation.TotalPrice = supply.TotalPrice;
+                                paymentAllocation.PaymentStatus = supply.PaymentStatus;
+                            }
+                        }
+                    }
+                    response.Model = paymentModel;
                 }
 
                 return response;
@@ -318,17 +352,17 @@ namespace Services.ServicesImpl
             {
                 var response = new PaginatedResponseModel<PaymentResponseModel>();
 
-                var orders = await unitOfWork.PaymentRepository.GetPayments(page, pageSize, customerId, null);
+                var payments = await unitOfWork.PaymentRepository.GetPayments(page, pageSize, customerId, null);
 
-                if (orders.Model == null || orders.Model.Count < 1)
+                if (payments.Model == null || payments.Model.Count < 1)
                 {
                     response.Message = "No Payment found";
                     response.Model = new List<PaymentResponseModel>();
                 }
                 else
                 {
-                    response.Model = autoMapper.Map<List<PaymentResponseModel>>(orders.Model);
-                    response.TotalCount = orders.Model.Count;
+                    response.Model = autoMapper.Map<List<PaymentResponseModel>>(payments.Model);
+                    response.TotalCount = payments.TotalCount;
                 }
                 return response;
             }
@@ -343,7 +377,7 @@ namespace Services.ServicesImpl
             if (payment == null || !payment.IsActive)
             {
                 response.IsError = true;
-                response.Message = "Payment not found";
+                response.Message = "Payment already deleted.";
                 return response;
             }
 

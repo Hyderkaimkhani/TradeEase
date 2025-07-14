@@ -84,6 +84,11 @@ namespace Services.ServicesImpl
                     response.IsError = true;
                     response.Message = $"Customer does not exists";
                 }
+                else if(!customer.IsActive)
+                {
+                    response.IsError = true;
+                    response.Message = $"Customer is inactive. Please activate the customer before updating.";
+                }
                 else
                 {
 
@@ -160,7 +165,7 @@ namespace Services.ServicesImpl
             }
         }
 
-        public async Task<List<DropDownModel>> GetCustomersDropDown(string entityType)
+        public async Task<List<DropDownModel>> GetCustomersDropDown(string? entityType)
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {

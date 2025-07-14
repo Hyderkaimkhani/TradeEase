@@ -3,6 +3,7 @@
     OrderNumber         VARCHAR(20) NOT NULL,
     CustomerId          INT NOT NULL,
     TruckId             INT NOT NULL,
+    TruckNumber         VARCHAR(50) NOT NULL,
     FruitId             INT NOT NULL,
     Quantity            DECIMAL(10,2) NOT NULL CHECK (Quantity > 0), -- Total quantity
     PurchasePrice       DECIMAL(10,2) NOT NULL CHECK (PurchasePrice > 0), -- Avg purchase price in case of multiple supplier against an order

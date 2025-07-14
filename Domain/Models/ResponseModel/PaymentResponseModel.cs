@@ -13,5 +13,7 @@ namespace Domain.Models.ResponseModel
         public string? Notes { get; set; } = string.Empty;
         public bool IsActive { get; set; }
         public string PaymentBy { get; set; } = string.Empty;
+
+        public List<PaymentAllocationResponseModel> PaymentAllocations { get; set; }
     }
 }

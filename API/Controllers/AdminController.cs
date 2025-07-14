@@ -69,7 +69,14 @@ namespace API.Controllers
         [HttpGet("Supplier/dropdown")]
         public async Task<IActionResult> GetSuppliers()
         {
-            return Ok(await _adminService.GetCustomersDropDown(EntityType.Customer.ToString()));
+            return Ok(await _adminService.GetCustomersDropDown(EntityType.Supplier.ToString()));
+
+        }
+
+        [HttpGet("Entity/dropdown")]
+        public async Task<IActionResult> GetAllCustomersSuppliers()
+        {
+            return Ok(await _adminService.GetCustomersDropDown(string.Empty));
 
         }
 

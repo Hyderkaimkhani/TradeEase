@@ -55,24 +55,28 @@ namespace Repositories.RepositoriesImpl
                 query = query.Where(c => c.EntityType.ToLower() == entityType.ToLower());
             }
 
-            var customers  = await query.ToListAsync();
+            var customers = await query.ToListAsync();
 
             return customers;
         }
 
-        public async Task<List<DropDownModel>> GetCustomersDropDown(string entityType)
+        public async Task<List<DropDownModel>> GetCustomersDropDown(string? entityType)
         {
+            var query = _context.Set<Customer>().AsNoTracking();
 
-            var customers = await _context.Set<Customer>().AsNoTracking()
-                .Where(c => c.EntityType.ToLower() == entityType.ToLower())
-                .Where(c => c.IsActive)
-                .Select(c => new DropDownModel
-                {
-                    Key = c.Id,
-                    Value = c.Name
-                })
-                .OrderBy(c => c.Value)
-                .ToListAsync();
+            if (!string.IsNullOrEmpty(entityType))
+            {
+                query = query.Where(c => c.EntityType.ToLower() == entityType.ToLower());
+            }
+
+            var customers = await query.Where(c => c.IsActive)
+            .Select(c => new DropDownModel
+            {
+                Key = c.Id,
+                Value = c.Name
+            })
+            .OrderBy(c => c.Value)
+            .ToListAsync();
 
             return customers;
         }
@@ -98,7 +102,7 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<TruckAssignment?> GetTruckAssignmen(int truckId)
         {
-            var truckAssignment = await _context.Set<TruckAssignment>().FirstOrDefaultAsync(x => x.TruckId== truckId);
+            var truckAssignment = await _context.Set<TruckAssignment>().FirstOrDefaultAsync(x => x.TruckId == truckId);
             return truckAssignment;
         }
 
@@ -110,7 +114,7 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<Fruit?> GetFruit(int id)
         {
-            var fruit = await _context.Set<Fruit>().FirstOrDefaultAsync(x=>x.Id == id);
+            var fruit = await _context.Set<Fruit>().FirstOrDefaultAsync(x => x.Id == id);
             return fruit;
         }
 

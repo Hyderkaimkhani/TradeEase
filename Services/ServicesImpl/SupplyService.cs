@@ -62,7 +62,7 @@ namespace Services.ServicesImpl
                 var supply = autoMapper.Map<Supply>(requestModel);
 
                 supply.TotalPrice = requestModel.Quantity * requestModel.PurchasePrice;
-                supply.SupplyNumber = "SUP-" + Utilities.GenerateRandomNumber();
+                supply.SupplyNumber = "S-" + Utilities.GenerateRandomNumber();
                 supply.TruckId = truck.Id;
                 supply.IsActive = true;
 
@@ -260,7 +260,7 @@ namespace Services.ServicesImpl
                 else
                 {
                     response.Model = autoMapper.Map<List<SupplyResponseModel>>(supplies.Model);
-                    response.TotalCount = supplies.Model.Count;
+                    response.TotalCount = supplies.TotalCount;
                 }
                 return response;
             }

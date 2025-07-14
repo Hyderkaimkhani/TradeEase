@@ -201,8 +201,6 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.MapControllers();
-
 //app.MapHealthChecks("/api-health", new HealthCheckOptions
 //{
 //    ResponseWriter = HealthReporting.WriteResponse
@@ -210,6 +208,8 @@ app.MapControllers();
 
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

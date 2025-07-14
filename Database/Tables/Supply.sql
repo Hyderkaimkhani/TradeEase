@@ -4,6 +4,7 @@
     SupplierId     INT NOT NULL FOREIGN KEY REFERENCES Customer(Id),
     FruitId        INT NOT NULL FOREIGN KEY REFERENCES Fruit(Id),
     TruckId        INT NULL FOREIGN KEY REFERENCES Truck(Id),
+    TruckNumber    VARCHAR(50) NOT NULL,
     Quantity       DECIMAL(10,2) NOT NULL CHECK (Quantity > 0),     -- Kg or Units
     PurchasePrice  DECIMAL(10,2) NOT NULL CHECK (PurchasePrice > 0), -- Price per unit at the time of purchase
     TotalPrice     DECIMAL(10,2) NOT NULL CHECK (TotalPrice > 0),   -- PurchasePrice * Quantity

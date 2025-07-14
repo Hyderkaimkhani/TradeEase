@@ -162,10 +162,17 @@ namespace Common
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
 
-        public static string GenerateRandomNumber()
+        public static string GenerateRandomNumberULID()
         {
             var ulid = Ulid.NewUlid().ToString().Substring(0, 10); // ULID is time-sortable and unique
             return ulid;
+        }
+
+        public static string GenerateRandomNumber()
+        {
+            var datePart = DateTime.UtcNow.ToString("yyyyMMdd");
+            var randomPart = Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper(); // 4 chars from GUID
+            return $"{datePart}-{randomPart}";
         }
     }
 }

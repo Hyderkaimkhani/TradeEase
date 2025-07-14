@@ -7,6 +7,14 @@
         public string ReferenceType { get; set; } // Order or Supply
         public int ReferenceId { get; set; }
         public decimal AllocatedAmount { get; set; }
-        public PaymentResponseModel Payment { get; set; }
+
+        public string Number { get; set; } = string.Empty;
+        public decimal TotalPrice { get; set; }
+        public DateTime OperationDate { get; set; } // Supply / Order Date
+        public string TruckNumber { get; set; } = string.Empty;
+        public string PaymentStatus { get; set; } = string.Empty;
+        public decimal Quantity { get; set; }
+        public decimal Price { get; set; }
+
     }
 }
