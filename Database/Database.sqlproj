@@ -65,6 +65,8 @@
     <Build Include="Tables\UserRole.sql" />
     <None Include="Data\Data.UserRole.sql" />
     <Build Include="Tables\AuditLog.sql" />
+    <Build Include="Tables\BillDetail.sql" />
+    <Build Include="Tables\Bill.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />

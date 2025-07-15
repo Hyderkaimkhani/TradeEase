@@ -297,7 +297,6 @@ public class OrderServiceTests
             Quantity = newQuantity,
             SellingPrice = newPrice,
             FruitId = 2,
-            OrderDate = DateTime.UtcNow,
             DeliveryDate = DateTime.UtcNow.AddDays(2)
         };
 
@@ -373,7 +372,6 @@ public class OrderServiceTests
             SellingPrice = newPrice,
             TruckNumber = "TRK-001",
             FruitId = 7,
-            OrderDate = DateTime.UtcNow,
             DeliveryDate = DateTime.UtcNow.AddDays(2)
         };
 

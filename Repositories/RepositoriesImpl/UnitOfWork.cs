@@ -15,6 +15,7 @@ namespace Repositories.RepositoriesImpl
         private IOrderRepository? _orderRepository;
         private ISupplyRepository? _supplyRepository;
         private IPaymentRepository? _paymentRepository;
+        private IBillRepository? _billRepository;
 
         private readonly Context.Context _context;
         private readonly ICurrentUserService _currentUserService;
@@ -101,6 +102,18 @@ namespace Repositories.RepositoriesImpl
                 }
 
                 return _paymentRepository;
+            }
+        }
+
+        public IBillRepository BillRepository
+        {
+            get
+            {
+                if (_billRepository == null)
+                {
+                    _billRepository = new BillRepository(_context);
+                }
+                return _billRepository;
             }
         }
 

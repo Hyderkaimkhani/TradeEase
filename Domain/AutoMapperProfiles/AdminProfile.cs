@@ -47,6 +47,11 @@ namespace Domain.AutoMapperProfiles
                .ForMember(dest => dest.PaymentBy, opt => opt.MapFrom(src => src.Customer.Name));
 
             CreateMap<PaymentAllocation, PaymentAllocationResponseModel>();
+
+            CreateMap<Bill, BillResponseModel>().ReverseMap();
+            CreateMap<BillDetail, BillDetailRespnseModel>().ReverseMap();
+            CreateMap<BillAddRequestModel, Bill>();
+
         }
     }
 }

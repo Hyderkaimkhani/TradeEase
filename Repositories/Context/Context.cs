@@ -30,6 +30,9 @@ namespace Repositories.Context
         public virtual DbSet<TruckAssignment> TruckAssignment { get; set; }
         public virtual DbSet<Payment> Payment { get; set; }
         public virtual DbSet<PaymentAllocation> PaymentAllocation { get; set; }
+        public virtual DbSet<Bill> Bill { get; set; }
+        public virtual DbSet<BillDetail> BillDetail { get; set; }
+
         public virtual DbSet<AppToken> AppToken { get; set; }
 
         public virtual DbSet<AuditLog> AuditLog { get; set; }
