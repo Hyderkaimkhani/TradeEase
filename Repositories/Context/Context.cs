@@ -1,17 +1,21 @@
-﻿using Domain.Entities;
+﻿using Common.Interfaces;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Repositories.Context
 {
     public class Context : DbContext
     {
+        private readonly ICurrentUserService _currentUser;
+
         public Context() : base()
         {
             //this.ChangeTracker.QueryTrackingBehavior =QueryTrackingBehavior.NoTracking;
         }
 
-        public Context(DbContextOptions options) : base(options)
+        public Context(DbContextOptions options, ICurrentUserService currentUser) : base(options)
         {
+            _currentUser = currentUser;
             //this.ChangeTracker.QueryTrackingBehavior =QueryTrackingBehavior.NoTracking;
             //Database.SetCommandTimeout(20000);
         }
@@ -44,6 +48,12 @@ namespace Repositories.Context
                 .HasOne(p => p.Customer)
                 .WithMany() // Add .WithMany(c => c.Payments) if Customer has Payments collection
                 .HasForeignKey(p => p.EntityId);
+
+            int companyId = _currentUser.GetCurrentCompanyId();
+
+            //modelBuilder.Entity<Order>().HasQueryFilter(o => o.CompanyId == companyId);
+            //modelBuilder.Entity<Supply>().HasQueryFilter(s => s.CompanyId == companyId);
+            //modelBuilder.Entity<Payment>().HasQueryFilter(p => p.CompanyId == companyId);
 
         }
     }

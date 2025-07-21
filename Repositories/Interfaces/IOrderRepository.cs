@@ -15,5 +15,7 @@ namespace Repositories.Interfaces
 
         Task<PaginatedResponseModel<Order>> GetOrders(int page, int pageSize, int? fruitId, int? customerId);
 
+        Task<List<Order>> GetUnbilledOrders(int customerId, DateTime from, DateTime to);
+
     }
 }

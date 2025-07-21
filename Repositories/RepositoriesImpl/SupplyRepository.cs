@@ -119,5 +119,17 @@ namespace Repositories.RepositoriesImpl
 
             return supplies;
         }
+
+        public async Task<List<Supply>> GetUnbilledSupplies(int customerId, DateTime from, DateTime to)
+        {
+            return await _context.Set<Supply>().AsNoTracking()
+                .Where(supply => supply.IsActive &&
+                                supply.SupplierId == customerId &&
+                                supply.SupplyDate >= from &&
+                                supply.SupplyDate <= to &&
+                                supply.PaymentStatus != PaymentStatus.Paid.ToString() &&
+                                !_context.Set<BillDetail>().Any(bd =>bd.SupplyId == supply.Id))
+                .ToListAsync();
+        }
     }
 }

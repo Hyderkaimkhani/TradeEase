@@ -8,6 +8,7 @@
         ISupplyRepository SupplyRepository { get; }
         IOrderRepository OrderRepository { get; }
         IPaymentRepository PaymentRepository { get; }
+        IBillRepository BillRepository { get; }
 
         void DiscardChanges();
 

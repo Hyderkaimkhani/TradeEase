@@ -14,9 +14,10 @@
     CONSTRAINT [FK_BillDetail_Bill] FOREIGN KEY ([BillId]) REFERENCES [dbo].[Bill] ([Id])
 );
 GO
-CREATE UNIQUE INDEX [IX_BillDetail_Reference] ON [dbo].[BillDetail] 
-(
-    [BillId], 
-    [ReferenceType]
-)
+CREATE NONCLUSTERED INDEX IX_BillDetail_OrderId ON dbo.BillDetail(OrderId)
+WHERE OrderId IS NOT NULL;
+GO
+
+CREATE NONCLUSTERED INDEX IX_BillDetail_SupplyId ON dbo.BillDetail(SupplyId)
+WHERE SupplyId IS NOT NULL;
 GO

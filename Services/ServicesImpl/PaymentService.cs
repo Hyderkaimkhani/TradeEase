@@ -13,20 +13,17 @@ namespace Services.ServicesImpl
     public class PaymentService : IPaymentService
     {
         private readonly IMapper autoMapper;
-        private readonly IConfiguration configuration;
         private readonly IUnitOfWorkFactory unitOfWorkFactory;
-        private readonly ITokenService tokenService;
+        private readonly IBillService billService;
 
         public PaymentService(IUnitOfWorkFactory unitOfWorkFactory,
               IMapper autoMapper,
-              IConfiguration configuration,
-              ITokenService tokenService
+              IBillService billService
             )
         {
             this.autoMapper = autoMapper;
-            this.configuration = configuration;
             this.unitOfWorkFactory = unitOfWorkFactory;
-            this.tokenService = tokenService;
+            this.billService = billService;
         }
 
         public async Task<ResponseModel<PaymentResponseModel>> AddPayment(PaymentAddModel requestModel)
@@ -188,7 +185,6 @@ namespace Services.ServicesImpl
                     }
 
                     alloc.IsActive = false;
-                    //alloc.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
                 }
 
                 // Update Payment info
@@ -196,8 +192,6 @@ namespace Services.ServicesImpl
                 payment.PaymentDate = requestModel.PaymentDate;
                 payment.PaymentMethod = requestModel.PaymentMethod;
                 payment.Notes = requestModel.Notes;
-                //payment.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
-                //payment.UpdatedDate = DateTime.Now;
 
                 await unitOfWork.SaveChangesAsync();        // save, to get latest status of supplies. Reverse Allocations not reflect in db otherwise
 
@@ -278,7 +272,6 @@ namespace Services.ServicesImpl
                 payment.PaymentDate = requestModel.PaymentDate;
                 payment.PaymentMethod = requestModel.PaymentMethod;
                 payment.Notes = requestModel.Notes;
-                //payment.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
             }
 
             if (await unitOfWork.SaveChangesAsync())
@@ -390,7 +383,8 @@ namespace Services.ServicesImpl
             }
 
             decimal allocatedTotal = 0;
-
+            var referenceType = payment.PaymentAllocations.FirstOrDefault()?.ReferenceType;
+            var affectedIds = new List<int>();
             foreach (var alloc in payment.PaymentAllocations)
             {
                 allocatedTotal += alloc.AllocatedAmount;
@@ -404,6 +398,7 @@ namespace Services.ServicesImpl
                         order.PaymentStatus = order.AmountReceived == 0 ? PaymentStatus.Unpaid.ToString()
                                              : order.AmountReceived < order.TotalSellingPrice ? PaymentStatus.Partial.ToString()
                                              : PaymentStatus.Paid.ToString();
+                        affectedIds.Add(order.Id);
                     }
                 }
                 else if (alloc.ReferenceType == OperationType.Supply.ToString())
@@ -415,6 +410,7 @@ namespace Services.ServicesImpl
                         supply.PaymentStatus = supply.AmountPaid == 0 ? PaymentStatus.Unpaid.ToString()
                                              : supply.AmountPaid < supply.TotalPrice ? PaymentStatus.Partial.ToString()
                                              : PaymentStatus.Paid.ToString();
+                        affectedIds.Add(supply.Id);
                     }
                 }
 
@@ -438,6 +434,14 @@ namespace Services.ServicesImpl
                 response.Message = "Payment deleted successfully";
                 response.Model = true;
             }
+
+            // Recalculate Bill Financials in background
+            //_ = Task.Run(async () =>
+            //{
+            //    var billIds = await unitOfWork.BillRepository.GetBillIdsByReference(referenceType, affectedIds);
+
+            //    await billService.UpdateBillPaymentStatus(billIds);
+            //});
 
             return response;
         }

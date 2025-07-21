@@ -32,9 +32,9 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetBills([FromQuery] int? entityId, [FromQuery] string? entityType)
+        public async Task<IActionResult> GetBills(BillFilterModel filterModel)
         {
-            var result = await billService.GetBills(entityId, entityType);
+            var result = await billService.GetBills(filterModel);
             return Ok(result);
         }
 

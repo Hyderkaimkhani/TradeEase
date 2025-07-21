@@ -10,8 +10,9 @@ namespace Services.Interfaces
     {
         Task<ResponseModel<BillResponseModel>> AddBill(BillAddRequestModel model);
         Task<ResponseModel<BillResponseModel>> GetBill(int id);
-        Task<ResponseModel<List<BillResponseModel>>> GetBills(int? entityId, string? entityType);
+        Task<PaginatedResponseModel<BillResponseModel>> GetBills(BillFilterModel filterModel);
         Task<ResponseModel<BillResponseModel>> UpdateBill(int id, BillAddRequestModel model);
         Task<ResponseModel<bool>> DeleteBill(int id);
+        Task UpdateBillPaymentStatus(List<int> billIds);
     }
 }

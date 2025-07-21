@@ -1,5 +1,8 @@
 using Domain.Entities;
+using Domain.Models;
+using Domain.Models.RequestModel;
 using Microsoft.EntityFrameworkCore;
+using Repositories.Context;
 using Repositories.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,19 +33,38 @@ namespace Repositories.RepositoriesImpl
                 .FirstOrDefaultAsync(b => b.Id == id && b.IsActive);
         }
 
-        public async Task<List<Bill>> GetBills(int? entityId, string? entityType)
+        public async Task<PaginatedResponseModel<Bill>> GetBills(BillFilterModel filter)
         {
-            var query = _context.Bill
-                .Include(b => b.BillDetails)
-                .Where(b => b.IsActive);
+            var query = _context.Bill.AsNoTracking().Where(b => b.IsActive);
 
-            if (entityId.HasValue)
-                query = query.Where(b => b.EntityId == entityId.Value);
+            if (!string.IsNullOrEmpty(filter.EntityType))
+                query = query.Where(b => b.EntityType == filter.EntityType);
 
-            if (!string.IsNullOrEmpty(entityType))
-                query = query.Where(b => b.EntityType == entityType);
+            if (filter.EntityId.HasValue)
+                query = query.Where(b => b.EntityId == filter.EntityId);
 
-            return await query.ToListAsync();
+            if (filter.FromDate.HasValue)
+                query = query.Where(b => b.FromDate >= filter.FromDate.Value);
+
+            if (filter.ToDate.HasValue)
+                query = query.Where(b => b.ToDate <= filter.ToDate.Value);
+
+            if (!string.IsNullOrEmpty(filter.ReferenceNumber))
+                query = query.Where(b => b.BillNumber == filter.ReferenceNumber);
+
+            var totalCount = await query.CountAsync();
+
+            var bills = await query
+                .OrderByDescending(b => b.CreatedDate)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            return new PaginatedResponseModel<Bill>
+            {
+                Model = bills,
+                TotalCount = totalCount
+            };
         }
 
         public async Task<bool> UpdateBill(Bill entity)
@@ -58,5 +80,17 @@ namespace Repositories.RepositoriesImpl
             bill.IsActive = false;
             return await _context.SaveChangesAsync() > 0;
         }
+
+        public async Task<List<int>> GetBillIdsByReference(string referenceType, List<int> referenceIds)
+        {
+            return await _context.BillDetail
+                .Where(b => b.ReferenceType == referenceType &&
+                            ((referenceType == "Order" && referenceIds.Contains(b.OrderId.Value)) ||
+                             (referenceType == "Supply" && referenceIds.Contains(b.SupplyId.Value))))
+                .Select(b => b.BillId)
+                .Distinct()
+                .ToListAsync();
+        }
+
     }
 }

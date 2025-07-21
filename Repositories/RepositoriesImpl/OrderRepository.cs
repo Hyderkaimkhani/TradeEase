@@ -81,5 +81,18 @@ namespace Repositories.RepositoriesImpl
                 TotalCount = totalCount
             };
         }
+
+        public async Task<List<Order>> GetUnbilledOrders(int customerId, DateTime from, DateTime to)
+        {
+            return await _context.Set<Order>().AsNoTracking()
+                .Where(order => order.IsActive &&
+                                order.CustomerId == customerId &&
+                                order.OrderDate >= from &&
+                                order.OrderDate <= to &&
+                                order.PaymentStatus != PaymentStatus.Paid.ToString() &&
+                                !_context.Set<BillDetail>().Any(bd =>
+                                    bd.ReferenceType == "Order" && bd.OrderId == order.Id))
+                .ToListAsync();
+        }
     }
 }

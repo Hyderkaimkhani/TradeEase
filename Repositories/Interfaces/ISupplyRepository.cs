@@ -21,5 +21,7 @@ namespace Repositories.Interfaces
 
         Task<List<Supply>> GetSuppliesBySupplier(int supplierId, string? paymentStatus = null);
 
+        Task<List<Supply>> GetUnbilledSupplies(int customerId, DateTime from, DateTime to);
+
     }
 }
