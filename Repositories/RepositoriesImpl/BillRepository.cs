@@ -33,7 +33,7 @@ namespace Repositories.RepositoriesImpl
                 .FirstOrDefaultAsync(b => b.Id == id && b.IsActive);
         }
 
-        public async Task<PaginatedResponseModel<Bill>> GetBills(BillFilterModel filter)
+        public async Task<PaginatedResponseModel<Bill>> GetBills(FilterModel filter)
         {
             var query = _context.Bill.AsNoTracking().Where(b => b.IsActive);
 
@@ -65,20 +65,6 @@ namespace Repositories.RepositoriesImpl
                 Model = bills,
                 TotalCount = totalCount
             };
-        }
-
-        public async Task<bool> UpdateBill(Bill entity)
-        {
-            _context.Bill.Update(entity);
-            return await _context.SaveChangesAsync() > 0;
-        }
-
-        public async Task<bool> DeleteBill(int id)
-        {
-            var bill = await _context.Bill.FindAsync(id);
-            if (bill == null) return false;
-            bill.IsActive = false;
-            return await _context.SaveChangesAsync() > 0;
         }
 
         public async Task<List<int>> GetBillIdsByReference(string referenceType, List<int> referenceIds)

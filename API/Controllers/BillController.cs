@@ -32,13 +32,13 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetBills(BillFilterModel filterModel)
+        public async Task<IActionResult> GetBills([FromQuery] FilterModel filterModel)
         {
             var result = await billService.GetBills(filterModel);
             return Ok(result);
         }
 
-        [HttpPut("{id}")]
+        [HttpPost("{id}")]
         public async Task<IActionResult> UpdateBill(int id, [FromBody] BillAddRequestModel model)
         {
             var result = await billService.UpdateBill(id, model);

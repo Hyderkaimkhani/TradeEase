@@ -127,35 +127,28 @@ namespace Services.ServicesImpl
             }
         }
 
-        public Task<ResponseModel<bool>> DeleteBill(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ResponseModel<BillResponseModel>> GetBill(int id)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<ResponseModel<BillResponseModel>> UpdateBill(int id, BillAddRequestModel model)
         {
             throw new NotImplementedException();
         }
 
 
-        //public async Task<ResponseModel<BillResponseModel>> GetBill(int id)
-        //{
-        //    var bill = await billRepository.GetBill(id);
-        //    if (bill == null)
-        //        return new ResponseModel<BillResponseModel> { IsError = true, Message = "Bill not found" };
+        public async Task<ResponseModel<BillResponseModel>> GetBill(int id)
+        {
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+            {
+                var bill = await unitOfWork.BillRepository.GetBill(id);
+                if (bill == null)
+                    return new ResponseModel<BillResponseModel> { IsError = true, Message = "Bill not found" };
 
-        //    return new ResponseModel<BillResponseModel>
-        //    {
-        //        Model = mapper.Map<BillResponseModel>(bill)
-        //    };
-        //}
+                return new ResponseModel<BillResponseModel>
+                {
+                    Model = autoMapper.Map<BillResponseModel>(bill)
+                };
+            }
+        }
 
-        public async Task<PaginatedResponseModel<BillResponseModel>> GetBills(BillFilterModel filterModel)
+        public async Task<PaginatedResponseModel<BillResponseModel>> GetBills(FilterModel filterModel)
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
@@ -177,32 +170,45 @@ namespace Services.ServicesImpl
             }
         }
 
-        //public async Task<ResponseModel<BillResponseModel>> UpdateBill(int id, BillAddRequestModel model)
-        //{
-        //    var bill = await billRepository.GetBill(id);
-        //    if (bill == null)
-        //        return new ResponseModel<BillResponseModel> { IsError = true, Message = "Bill not found" };
+        public async Task<ResponseModel<BillResponseModel>> UpdateBill(BillUpdateRequestModel model)
+        {
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+            {
+                var reponse = new ResponseModel<BillResponseModel>();
+                var bill = await unitOfWork.BillRepository.GetBill(model.Id);
+                if (bill == null)
+                    return new ResponseModel<BillResponseModel> { IsError = true, Message = "Bill not found" };
 
-        //    mapper.Map(model, bill);
-        //    await billRepository.UpdateBill(bill);
+                bill.DueDate = model.DueDate ?? bill.DueDate;
+                bill.Notes = model.Notes ?? bill.Notes;
 
-        //    return new ResponseModel<BillResponseModel>
-        //    {
-        //        Model = mapper.Map<BillResponseModel>(bill),
-        //        Message = "Bill updated successfully"
-        //    };
-        //}
+                await unitOfWork.SaveChangesAsync();
 
-        //public async Task<ResponseModel<bool>> DeleteBill(int id)
-        //{
-        //    var result = await billRepository.DeleteBill(id);
-        //    return new ResponseModel<bool>
-        //    {
-        //        Model = result,
-        //        Message = result ? "Bill deleted successfully" : "Bill not found",
-        //        IsError = !result
-        //    };
-        //}
+                reponse.Model = autoMapper.Map<BillResponseModel>(bill);
+                reponse.Message = "Bill updated successfully";
+
+                return reponse;
+            }
+        }
+
+        public async Task<ResponseModel<bool>> DeleteBill(int id)
+        {
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+            {
+                var bill = await unitOfWork.BillRepository.GetBill(id);
+                if (bill == null)
+                    return new ResponseModel<bool> { IsError = true, Message = "Bill not found", Model = false };
+
+                bill.IsActive = false; // Soft delete
+
+                await unitOfWork.SaveChangesAsync();
+                return new ResponseModel<bool>
+                {
+                    Message = "Bill deleted successfully",
+                    Model = true
+                };
+            }
+        }
 
         public async Task UpdateBillPaymentStatus(List<int> billIds)
         {

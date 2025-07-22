@@ -173,7 +173,7 @@ namespace Services.ServicesImpl
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
-                
+                // Check if Bill is created against this Order, if yes then restrict to update Price.
                 var response = new ResponseModel<OrderResponseModel>();
 
                 var order = await unitOfWork.OrderRepository.GetOrder(requestModel.Id);

@@ -1,6 +1,6 @@
 ﻿namespace Domain.Models.RequestModel
 {
-    public class BillFilterModel
+    public class FilterModel
     {
         public string? EntityType { get; set; } // "Customer" or "Supplier"
         public int? EntityId { get; set; }

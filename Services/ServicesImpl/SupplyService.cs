@@ -129,7 +129,7 @@ namespace Services.ServicesImpl
         public async Task<ResponseModel<SupplyResponseModel>> UpdateSupply(SupplyUpdateModel requestModel)
         {
             var response = new ResponseModel<SupplyResponseModel>();
-
+            // Check if Bill is created against this Order, if yes then restrict to update Price.
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var supply = await unitOfWork.SupplyRepository.GetSupply(requestModel.Id);

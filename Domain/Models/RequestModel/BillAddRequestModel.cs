@@ -5,9 +5,6 @@ namespace Domain.Models.RequestModel
     public class BillAddRequestModel
     {
         [Required]
-        public int Id { get; set; }
-
-        [Required]
         [RegularExpression("^(Customer|Supplier)$", ErrorMessage = "Invalid EntityType")]
         public string EntityType { get; set; } = string.Empty;// Customer / Supplier
 
