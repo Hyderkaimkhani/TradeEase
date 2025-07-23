@@ -10,6 +10,7 @@ namespace Repositories.Interfaces
     {
         Task<Bill> AddBill(Bill entity);
         Task<Bill?> GetBill(int id);
+        Task<Bill?> GetBillWithDetails(int id);
         Task<PaginatedResponseModel<Bill>> GetBills(FilterModel filter);
         Task<List<int>> GetBillIdsByReference(string referenceType, List<int> referenceIds);
     }

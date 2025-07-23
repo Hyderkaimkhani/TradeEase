@@ -3,7 +3,7 @@
     [BillNumber]    VARCHAR (50)    NOT NULL,
     [EntityType]    VARCHAR (10)    NOT NULL,
     [EntityId]      INT             NOT NULL,
-    [EntityName]    VARCHAR (10)    NOT NULL,
+    [EntityName]    VARCHAR (100)    NOT NULL,
     [FromDate]      DATETIME        NULL,
     [ToDate]        DATETIME        NULL,
     [DueDate]       DATETIME        NULL,

@@ -1,7 +1,7 @@
 ﻿CREATE TABLE [dbo].[BillDetail] (
     [Id]              INT             IDENTITY (1, 1) NOT NULL,
     [BillId]          INT             NOT NULL,
-    [ReferenceType]     VARCHAR(20) NOT NULL CHECK (ReferenceType IN ('Order', 'Supply')),
+    [ReferenceType]   VARCHAR(20) NOT NULL CHECK (ReferenceType IN ('Order', 'Supply')),
     [OrderId]         INT             NULL,
     [SupplyId]        INT             NULL,
     [ReferenceNumber] VARCHAR (20)    NULL,

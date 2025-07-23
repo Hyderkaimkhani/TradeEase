@@ -1,5 +1,6 @@
 using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class BillController : ControllerBase
     {
         private readonly IBillService billService;
@@ -38,10 +40,10 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [HttpPost("{id}")]
-        public async Task<IActionResult> UpdateBill(int id, [FromBody] BillAddRequestModel model)
+        [HttpPost("Update")]
+        public async Task<IActionResult> UpdateBill([FromBody] BillUpdateRequestModel model)
         {
-            var result = await billService.UpdateBill(id, model);
+            var result = await billService.UpdateBill(model);
             return result.IsError ? NotFound(result) : Ok(result);
         }
 

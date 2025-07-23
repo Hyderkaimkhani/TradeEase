@@ -40,7 +40,7 @@ namespace Services.ServicesImpl
                     return response;
                 }
 
-                var fromDate = model.FromDate ?? DateTime.MinValue;
+                var fromDate = model.FromDate ?? new DateTime(1753, 1, 1);  // SQL Min Date
                 var toDate = model.ToDate ?? DateTime.UtcNow;
 
                 var referenceType = model.EntityType == EntityType.Customer.ToString() ? OperationType.Order.ToString() : OperationType.Supply.ToString();
@@ -137,7 +137,7 @@ namespace Services.ServicesImpl
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
-                var bill = await unitOfWork.BillRepository.GetBill(id);
+                var bill = await unitOfWork.BillRepository.GetBillWithDetails(id);
                 if (bill == null)
                     return new ResponseModel<BillResponseModel> { IsError = true, Message = "Bill not found" };
 

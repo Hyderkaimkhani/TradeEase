@@ -22,6 +22,8 @@
 
         public DateTime? PaidDate { get; set; }
 
+        public DateTime BillDate { get; set; }
+
         public string? PdfPath { get; set; }
 
         public string? Notes { get; set; }
@@ -43,6 +45,11 @@
         public decimal? UnitPrice { get; set; }
         public decimal LineTotal { get; set; }
         public string? Unit { get; set; }
+        public DateTime RecordDate { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string PaymentStatus { get; set; } = string.Empty;
+        public string TruckNumber { get; set; } = string.Empty;
+        public string FruitName { get; set; } = string.Empty;
     }
 
 }

@@ -30,7 +30,20 @@ namespace Repositories.RepositoriesImpl
         {
             return await _context.Bill
                 .Include(b => b.BillDetails)
-                .FirstOrDefaultAsync(b => b.Id == id && b.IsActive);
+                //.ThenInclude(x=>x.Order)
+                //.Include(x=>x.Su)
+                .FirstOrDefaultAsync(b => b.Id == id);
+        }
+
+        public async Task<Bill?> GetBillWithDetails(int id)
+        {
+            return await _context.Bill
+                .Include(b => b.Customer)
+                .Include(b => b.BillDetails)    
+                    .ThenInclude(bd=>bd.Order)
+                .Include(b=>b.BillDetails)
+                    .ThenInclude(bd=>bd.Supply)
+                .FirstOrDefaultAsync(b => b.Id == id);
         }
 
         public async Task<PaginatedResponseModel<Bill>> GetBills(FilterModel filter)

@@ -48,6 +48,10 @@ namespace Repositories.Context
                 .HasOne(p => p.Customer)
                 .WithMany() // Add .WithMany(c => c.Payments) if Customer has Payments collection
                 .HasForeignKey(p => p.EntityId);
+            modelBuilder.Entity<Bill>()
+               .HasOne(p => p.Customer)
+               .WithMany() // Add .WithMany(c => c.Payments) if Customer has Payments collection
+               .HasForeignKey(p => p.EntityId);
 
             int companyId = _currentUser.GetCurrentCompanyId();
 
