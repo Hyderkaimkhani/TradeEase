@@ -37,9 +37,6 @@ namespace Domain.Entities
         [Column(TypeName = "decimal(18,2)")]
         public decimal LineTotal { get; set; }
 
-        [StringLength(20)]
-        public string? Unit { get; set; }
-
         public Bill Bill { get; set; } = new Bill();
         public virtual Order? Order { get; set; }
         public virtual Supply? Supply { get; set; }

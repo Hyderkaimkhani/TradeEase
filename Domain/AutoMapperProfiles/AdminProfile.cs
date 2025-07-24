@@ -50,8 +50,24 @@ namespace Domain.AutoMapperProfiles
 
             CreateMap<Bill, BillResponseModel>()
                 .ForMember(dest => dest.BillDate, opt => opt.MapFrom(src => src.CreatedDate));
-            CreateMap<BillDetail, BillDetailRespnseModel>();
-               // .ForMember(dest => dest.TruckNumber, opt => opt.MapFrom(src => src.Order.TruckNumber));
+            CreateMap<BillDetail, BillDetailResponseModel>()
+                .ForMember(dest => dest.RecordDate, opt => opt.MapFrom(src =>
+                src.Order != null ? src.Order.OrderDate : src.Supply.SupplyDate))
+
+            .ForMember(dest => dest.Status, opt => opt.MapFrom(src =>
+                src.Order != null ? src.Order.Status : string.Empty))
+
+            .ForMember(dest => dest.PaymentStatus, opt => opt.MapFrom(src =>
+                src.Order != null ? src.Order.PaymentStatus : src.Supply.PaymentStatus))
+
+            .ForMember(dest => dest.TruckNumber, opt => opt.MapFrom(src =>
+                src.Order != null ? src.Order.TruckNumber : src.Supply.TruckNumber))
+
+            .ForMember(dest => dest.FruitName, opt => opt.MapFrom(src =>
+                src.Order != null ? src.Order.Fruit.Name : src.Supply.Fruit.Name))
+
+            .ForMember(dest => dest.Unit, opt => opt.MapFrom(src =>
+                src.Order != null ? src.Order.Fruit.UnitType : src.Supply.Fruit.UnitType));
             CreateMap<BillAddRequestModel, Bill>();
 
         }

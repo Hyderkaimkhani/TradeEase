@@ -73,7 +73,8 @@ namespace Services.ServicesImpl
 
                         billDetails.Add(billDetail);
                     }
-                    totalPrice = orders.Sum(x => x.TotalSellingPrice);
+
+                    totalPrice = orders.Sum(x => x.TotalSellingPrice) - orders.Sum(x => x.AmountReceived);
                 }
                 else
                 {
@@ -98,7 +99,7 @@ namespace Services.ServicesImpl
 
                         billDetails.Add(billDetail);
                     }
-                    totalPrice = supplies.Sum(x => x.TotalPrice);
+                    totalPrice = supplies.Sum(x => x.TotalPrice) - supplies.Sum(x => x.AmountPaid);
                 }
 
                 var bill = new Bill

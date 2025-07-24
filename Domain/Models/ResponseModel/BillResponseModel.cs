@@ -29,10 +29,10 @@
         public string? Notes { get; set; }
 
         public bool IsActive { get; set; } = true;
-        public List<BillDetailRespnseModel> BillDetails { get; set; } = new List<BillDetailRespnseModel>();
+        public List<BillDetailResponseModel> BillDetails { get; set; } = new List<BillDetailResponseModel>();
     }
 
-    public class BillDetailRespnseModel
+    public class BillDetailResponseModel
     {
         public int Id { get; set; }
         public int BillId { get; set; }

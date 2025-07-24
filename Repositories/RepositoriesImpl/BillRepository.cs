@@ -41,8 +41,10 @@ namespace Repositories.RepositoriesImpl
                 .Include(b => b.Customer)
                 .Include(b => b.BillDetails)    
                     .ThenInclude(bd=>bd.Order)
+                    .ThenInclude(o => o.Fruit)
                 .Include(b=>b.BillDetails)
                     .ThenInclude(bd=>bd.Supply)
+                    .ThenInclude(s=>s.Fruit)
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
 
