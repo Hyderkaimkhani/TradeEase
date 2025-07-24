@@ -127,8 +127,9 @@ namespace Repositories.RepositoriesImpl
                                 supply.SupplierId == customerId &&
                                 supply.SupplyDate >= from &&
                                 supply.SupplyDate <= to &&
-                                supply.PaymentStatus != PaymentStatus.Paid.ToString() &&
-                                !_context.Set<BillDetail>().Any(bd =>bd.SupplyId == supply.Id))
+                                supply.PaymentStatus != PaymentStatus.Paid.ToString() )
+                //&&
+                //                !_context.Set<BillDetail>().Any(bd =>bd.SupplyId == supply.Id))
                 .ToListAsync();
         }
     }

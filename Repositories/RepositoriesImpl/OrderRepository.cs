@@ -89,9 +89,9 @@ namespace Repositories.RepositoriesImpl
                                 order.CustomerId == customerId &&
                                 order.OrderDate >= from &&
                                 order.OrderDate <= to &&
-                                order.PaymentStatus != PaymentStatus.Paid.ToString() &&
-                                !_context.Set<BillDetail>().Any(bd =>
-                                    bd.ReferenceType == "Order" && bd.OrderId == order.Id))
+                                order.PaymentStatus != PaymentStatus.Paid.ToString())
+                                //&&
+                                //!_context.Set<BillDetail>().Any(bd => bd.ReferenceType == "Order" && bd.OrderId == order.Id))
                 .ToListAsync();
         }
     }
