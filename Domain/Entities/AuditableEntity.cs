@@ -4,6 +4,7 @@ namespace Domain.Entities
 {
     public abstract class AuditableEntity
     {
+        public virtual int? CompanyId { get; set; }
         public bool IsActive { get; set; } = true;
 
         [MaxLength(100)]

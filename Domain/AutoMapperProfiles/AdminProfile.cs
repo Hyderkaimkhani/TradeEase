@@ -10,6 +10,11 @@ namespace Domain.AutoMapperProfiles
     {
         public AdminProfile()
         {
+            CreateMap<CompanyAddRequestModel, Company>();
+            CreateMap<CompanyUpdateRequestModel, Company>();
+            CreateMap<Company, CompanyResponseModel>();
+
+
             CreateMap<CustomerAddModel, Customer>();
             CreateMap<CustomerUpdateModel, Customer>();
             CreateMap<Customer, CustomerResponseModel>();

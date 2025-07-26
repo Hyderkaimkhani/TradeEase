@@ -32,5 +32,6 @@ namespace Common
     public static class ClaimType
     {
         public const string Custom_Sub = "custom_sub";
+        public const string CompanyId = "company_Id";
     }
 }

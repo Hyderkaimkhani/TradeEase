@@ -9,6 +9,9 @@ namespace Domain.Models.RequestModel
     {
         [Required]
         public string FirstName { get; set; }
+
+        [Required]
+        int CompanyId { get; set; }
         public string? LastName { get; set; }
         public string? UserName { get; set; }
 

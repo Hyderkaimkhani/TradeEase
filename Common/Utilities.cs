@@ -174,5 +174,6 @@ namespace Common
             var randomPart = Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper(); // 4 chars from GUID
             return $"{datePart}-{randomPart}";
         }
+
     }
 }

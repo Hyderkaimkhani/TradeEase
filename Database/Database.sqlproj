@@ -67,6 +67,7 @@
     <Build Include="Tables\AuditLog.sql" />
     <Build Include="Tables\BillDetail.sql" />
     <Build Include="Tables\Bill.sql" />
+    <Build Include="Tables\Company.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />

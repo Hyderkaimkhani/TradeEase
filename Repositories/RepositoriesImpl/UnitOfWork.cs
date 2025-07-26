@@ -3,6 +3,7 @@ using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Helpers;
 using Repositories.Interfaces;
+using System.ComponentModel.Design;
 using System.Reflection;
 
 namespace Repositories.RepositoriesImpl
@@ -16,6 +17,7 @@ namespace Repositories.RepositoriesImpl
         private ISupplyRepository? _supplyRepository;
         private IPaymentRepository? _paymentRepository;
         private IBillRepository? _billRepository;
+        private ICompanyRepository? _companyRepository;
 
         private readonly Context.Context _context;
         private readonly ICurrentUserService _currentUserService;
@@ -117,6 +119,18 @@ namespace Repositories.RepositoriesImpl
             }
         }
 
+        public ICompanyRepository CompanyRepository
+        {
+            get
+            {
+                if (_companyRepository == null)
+                {
+                    _companyRepository = new CompanyRepository(_context);
+                }
+                return _companyRepository;
+            }
+        }
+
         public void DiscardChanges()
         {
             foreach (var Entry in _context.ChangeTracker.Entries())
@@ -147,8 +161,10 @@ namespace Repositories.RepositoriesImpl
 
                         if (entry.State == EntityState.Added)
                         {
+                            auditable.CompanyId = _currentUserService.GetCurrentCompanyId();
                             auditable.CreatedDate = DateTime.UtcNow;
                             auditable.CreatedBy = currentUser;
+
                         }
 
                         auditable.UpdatedDate = DateTime.UtcNow;

@@ -7,6 +7,7 @@ namespace Repositories.Context
     public class Context : DbContext
     {
         private readonly ICurrentUserService _currentUser;
+        private int CurrentCompanyId => _currentUser?.GetCurrentCompanyId() ?? 0;
 
         public Context() : base()
         {
@@ -36,6 +37,7 @@ namespace Repositories.Context
         public virtual DbSet<PaymentAllocation> PaymentAllocation { get; set; }
         public virtual DbSet<Bill> Bill { get; set; }
         public virtual DbSet<BillDetail> BillDetail { get; set; }
+        public virtual DbSet<Company> Company { get; set; }
 
         public virtual DbSet<AppToken> AppToken { get; set; }
 
@@ -55,9 +57,15 @@ namespace Repositories.Context
 
             int companyId = _currentUser.GetCurrentCompanyId();
 
-            //modelBuilder.Entity<Order>().HasQueryFilter(o => o.CompanyId == companyId);
-            //modelBuilder.Entity<Supply>().HasQueryFilter(s => s.CompanyId == companyId);
-            //modelBuilder.Entity<Payment>().HasQueryFilter(p => p.CompanyId == companyId);
+            modelBuilder.Entity<Customer>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<Order>().HasQueryFilter(o => o.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<Supply>().HasQueryFilter(s => s.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<Payment>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<PaymentAllocation>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<Payment>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<Truck>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<User>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<Bill>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
 
         }
     }

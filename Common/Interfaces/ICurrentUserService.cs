@@ -3,6 +3,8 @@
     public interface ICurrentUserService
     {
         string GetCurrentUsername();
+
+        int GetCurrentCompanyId();
     }
 
 }

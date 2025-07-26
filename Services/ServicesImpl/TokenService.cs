@@ -138,6 +138,7 @@ namespace Services.ServicesImpl
             {
                 new Claim(JwtRegisteredClaimNames.Sid, userModel.Id.ToString()),
                 new Claim(ClaimType.Custom_Sub, userModel.UserName == null ? userModel.Email : userModel.UserName),
+                new Claim(ClaimType.CompanyId, userModel.CompanyId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, userModel.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Iat, Utilities.ToUnixEpochDate(dateTime).ToString(), ClaimValueTypes.Integer64),

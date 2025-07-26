@@ -1,6 +1,7 @@
 ﻿CREATE TABLE [dbo].[User]
 (
 	[Id] INT IDENTITY (1, 1) NOT NULL PRIMARY KEY,
+	[CompanyId] INT			 NOT NULL,
 	[FirstName] NVARCHAR (100)  NULL,
 	[LastName] NVARCHAR (100)  NULL,
 	[UserName] NVARCHAR (100) NULL,
@@ -21,5 +22,6 @@
     [CreatedDate]         DATETIME       NOT NULL DEFAULT GetDate(),
     [UpdatedBy]           NVARCHAR (100) NULL,
     [UpdatedDate]         DATETIME       NOT NULL DEFAULT GetDate(),
-	CONSTRAINT [FK_User_UserRole] FOREIGN KEY ([UserRoleId]) REFERENCES [dbo].[UserRole] ([Id])
+	CONSTRAINT [FK_User_UserRole] FOREIGN KEY ([UserRoleId]) REFERENCES [dbo].[UserRole] ([Id]),
+	CONSTRAINT [FK_User_Company] FOREIGN KEY ([CompanyId]) REFERENCES [dbo].[Company] ([Id])
 )

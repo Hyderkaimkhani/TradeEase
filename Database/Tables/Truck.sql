@@ -1,6 +1,7 @@
 ﻿CREATE TABLE Truck (
     Id        INT IDENTITY(1,1) PRIMARY KEY,
     TruckNumber    VARCHAR(50) UNIQUE NOT NULL,
+    [CompanyId]     INT			 NOT NULL,
     Capacity       DECIMAL(10,2) NULL, -- Capacity in kg
     DriverName     VARCHAR(100),
     DriverContact  VARCHAR(20),
@@ -10,4 +11,5 @@
     [CreatedDate]  DATETIME       NOT NULL DEFAULT GetDate(),
     [UpdatedBy]    NVARCHAR (100) NULL,
     [UpdatedDate]  DATETIME       NOT NULL DEFAULT GetDate(),
+    CONSTRAINT [FK_Supply_Company] FOREIGN KEY ([CompanyId]) REFERENCES [dbo].[Company] ([Id])
 );

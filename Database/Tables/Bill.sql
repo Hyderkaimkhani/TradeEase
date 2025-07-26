@@ -1,6 +1,7 @@
 ﻿CREATE TABLE [dbo].[Bill] (
     [Id]            INT             IDENTITY (1, 1) NOT NULL,
     [BillNumber]    VARCHAR (50)    NOT NULL,
+    [CompanyId]     INT			 NOT NULL,
     [EntityType]    VARCHAR (10)    NOT NULL,
     [EntityId]      INT             NOT NULL,
     [EntityName]    VARCHAR (100)    NOT NULL,
@@ -23,7 +24,8 @@
     CONSTRAINT [FK_Bill_Customer] FOREIGN KEY ([EntityId]) REFERENCES [dbo].[Customer] ([Id]),
     CONSTRAINT [CK_Bill_EntityType] CHECK ([EntityType] IN ('Customer','Supplier')),
     CONSTRAINT [CK_Bill_PaymentStatus] CHECK ([PaymentStatus] IN ('Unpaid','Partial','Paid')),
-    CONSTRAINT [UQ_BillNumber] UNIQUE NONCLUSTERED ([BillNumber] ASC)
+    CONSTRAINT [UQ_BillNumber] UNIQUE NONCLUSTERED ([BillNumber] ASC),
+    CONSTRAINT [FK_Bill_Company] FOREIGN KEY ([CompanyId]) REFERENCES [dbo].[Company] ([Id])
 );
 
 GO

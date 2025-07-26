@@ -1,6 +1,7 @@
 ﻿CREATE TABLE Supply (
     Id             INT IDENTITY(1,1) PRIMARY KEY,
     SupplyNumber   VARCHAR(20) NOT NULL,
+    [CompanyId]     INT			 NOT NULL,
     SupplierId     INT NOT NULL FOREIGN KEY REFERENCES Customer(Id),
     FruitId        INT NOT NULL FOREIGN KEY REFERENCES Fruit(Id),
     TruckId        INT NULL FOREIGN KEY REFERENCES Truck(Id),
@@ -17,7 +18,8 @@
     [CreatedBy]    NVARCHAR (100) NULL,
     [CreatedDate]  DATETIME       NOT NULL DEFAULT GetDate(),
     [UpdatedBy]    NVARCHAR (100) NULL,
-    [UpdatedDate]  DATETIME       NOT NULL DEFAULT GetDate(),
+    [UpdatedDate]  DATETIME       NOT NULL DEFAULT GetDate(),    
+    CONSTRAINT [FK_Supply_Company] FOREIGN KEY ([CompanyId]) REFERENCES [dbo].[Company] ([Id])
 );
 
 CREATE INDEX IX_Supply_SupplyDate ON Supply (SupplyDate DESC); -- For sorting

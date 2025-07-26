@@ -1,6 +1,7 @@
 ﻿CREATE TABLE [Order] (
     Id                  INT IDENTITY(1,1) PRIMARY KEY,
     OrderNumber         VARCHAR(20) NOT NULL,
+    [CompanyId]         INT			 NOT NULL,
     CustomerId          INT NOT NULL,
     TruckId             INT NOT NULL,
     TruckNumber         VARCHAR(50) NOT NULL,
@@ -26,7 +27,8 @@
     FOREIGN KEY (CustomerId) REFERENCES Customer(Id),
     FOREIGN KEY (TruckId) REFERENCES Truck(Id),
     FOREIGN KEY (FruitId) REFERENCES Fruit(Id),
-    FOREIGN KEY (TruckAssignmentId) REFERENCES TruckAssignment(Id)
+    FOREIGN KEY (TruckAssignmentId) REFERENCES TruckAssignment(Id),
+    CONSTRAINT [FK_Order_Company] FOREIGN KEY ([CompanyId]) REFERENCES [dbo].[Company] ([Id])
 );
 
 CREATE INDEX IX_Order_OrderDate ON [Order] (OrderDate DESC); -- For sorting

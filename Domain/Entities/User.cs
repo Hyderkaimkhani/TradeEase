@@ -21,6 +21,8 @@
 
         public virtual UserRole UserRole { get; set; }
 
+        public Company Company { get; set; }
+
         public User()
         {
             FirstName = string.Empty;

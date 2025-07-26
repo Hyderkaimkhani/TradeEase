@@ -9,6 +9,7 @@
         IOrderRepository OrderRepository { get; }
         IPaymentRepository PaymentRepository { get; }
         IBillRepository BillRepository { get; }
+        ICompanyRepository CompanyRepository { get; }
 
         void DiscardChanges();
 

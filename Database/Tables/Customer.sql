@@ -1,6 +1,7 @@
 ﻿
 CREATE TABLE Customer (
     Id     INT IDENTITY(1,1) PRIMARY KEY,
+    [CompanyId]     INT			 NOT NULL,
     EntityType   VARCHAR(50) NOT NULL CHECK (EntityType IN ('Customer', 'Supplier')) DEFAULT 'Customer',
     [Name]           VARCHAR(100) NOT NULL,
     Phone        	VARCHAR(20)  NOT NULL,
@@ -14,4 +15,5 @@ CREATE TABLE Customer (
     [CreatedDate]         DATETIME       NOT NULL DEFAULT GetDate(),
     [UpdatedBy]           NVARCHAR (100) NULL,
     [UpdatedDate]         DATETIME       NOT NULL DEFAULT GetDate(),
+    CONSTRAINT [FK_Customer_Company] FOREIGN KEY ([CompanyId]) REFERENCES [dbo].[Company] ([Id])
 );
