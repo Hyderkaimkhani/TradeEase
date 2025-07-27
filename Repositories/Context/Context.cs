@@ -38,7 +38,8 @@ namespace Repositories.Context
         public virtual DbSet<Bill> Bill { get; set; }
         public virtual DbSet<BillDetail> BillDetail { get; set; }
         public virtual DbSet<Company> Company { get; set; }
-
+        public virtual DbSet<Account> Account { get; set; }
+        public virtual DbSet<AccountTransaction> AccountTransaction { get; set; }
         public virtual DbSet<AppToken> AppToken { get; set; }
 
         public virtual DbSet<AuditLog> AuditLog { get; set; }

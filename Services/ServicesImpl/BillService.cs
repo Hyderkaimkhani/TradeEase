@@ -33,17 +33,17 @@ namespace Services.ServicesImpl
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var customer = await unitOfWork.AdminRepository.GetCustomer(model.EntityId);
-                if (customer == null || customer.EntityType != model.EntityType)
+                if (customer == null)
                 {
                     response.IsError = true;
-                    response.Message = $"{model.EntityType} not found or mismatched";
+                    response.Message = $"Customer not found";
                     return response;
                 }
 
                 var fromDate = model.FromDate ?? new DateTime(1753, 1, 1);  // SQL Min Date
                 var toDate = model.ToDate ?? DateTime.UtcNow;
 
-                var referenceType = model.EntityType == EntityType.Customer.ToString() ? OperationType.Order.ToString() : OperationType.Supply.ToString();
+                var referenceType = string.Empty;   // Fix this
 
                 List<Order> orders = new();
                 List<Supply> supplies = new();
@@ -106,7 +106,6 @@ namespace Services.ServicesImpl
                 {
                     BillNumber = $"INV-{Utilities.GenerateRandomNumber()}",
                     EntityId = model.EntityId,
-                    EntityType = model.EntityType,
                     EntityName = customer.Name,
                     FromDate = fromDate,
                     ToDate = toDate,

@@ -41,7 +41,7 @@ namespace Services.ServicesImpl
                 if (customerExists != null)
                 {
                     response.IsError = true;
-                    response.Message = $"{customerExists.EntityType} with same name already exists";
+                    response.Message = $"Customer with same name already exists";
                 }
                 else
                 {
@@ -57,14 +57,14 @@ namespace Services.ServicesImpl
                     if (addedCustomer != null)
                     {
                         await unitOfWork.SaveChangesAsync();
-                        response.Message = $"{customerAddModel.EntityType} added successfuly";
+                        response.Message = $"Customer added successfuly";
                         response.Model = autoMapper.Map<CustomerResponseModel>(addedCustomer);
 
                     }
                     else
                     {
                         response.IsError = true;
-                        response.Message = $"Unable to add {customerAddModel.EntityType}";
+                        response.Message = $"Unable to add Customer";
                     }
                 }
                 return response;
@@ -97,7 +97,7 @@ namespace Services.ServicesImpl
                     if (customerExists != null && customer.Id != requestModel.Id)
                     {
                         response.IsError = true;
-                        response.Message = $"{customerExists.EntityType} with same name already exists";
+                        response.Message = $"Customer with same name already exists";
                     }
                     else
                     {
@@ -107,13 +107,13 @@ namespace Services.ServicesImpl
 
                         if (await unitOfWork.SaveChangesAsync())
                         {
-                            response.Message = $"{customer.EntityType} updated successfully.";
+                            response.Message = $"Customer updated successfully";
                             response.Model = autoMapper.Map<CustomerResponseModel>(customer);
                         }
                         else
                         {
                             response.IsError = true;
-                            response.Message = $"Unable to update {customer.EntityType}";
+                            response.Message = $"Unable to update Customer";
                         }
                     }
                 }
@@ -143,13 +143,13 @@ namespace Services.ServicesImpl
             }
         }
 
-        public async Task<ResponseModel<List<CustomerResponseModel>>> GetCustomers(bool? isActive, string? entityType)
+        public async Task<ResponseModel<List<CustomerResponseModel>>> GetCustomers(bool? isActive)
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<List<CustomerResponseModel>>();
 
-                var customers = await unitOfWork.AdminRepository.GetCustomers(isActive, entityType);
+                var customers = await unitOfWork.AdminRepository.GetCustomers(isActive);
 
                 if (customers == null || customers.Count < 1)
                 {
@@ -165,11 +165,11 @@ namespace Services.ServicesImpl
             }
         }
 
-        public async Task<List<DropDownModel>> GetCustomersDropDown(string? entityType)
+        public async Task<List<DropDownModel>> GetCustomersDropDown()
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
-                var customers = await unitOfWork.AdminRepository.GetCustomersDropDown(entityType);
+                var customers = await unitOfWork.AdminRepository.GetCustomersDropDown();
                 return customers;
             }
         }
@@ -217,12 +217,12 @@ namespace Services.ServicesImpl
 
                     if (await unitOfWork.SaveChangesAsync())
                     {
-                        response.Message = $"{customer.EntityType} deleted successfully.";
+                        response.Message = $"Customer deleted successfully.";
                     }
                     else
                     {
                         response.IsError = true;
-                        response.Message = $"Unable to delete {customer.EntityType}.";
+                        response.Message = $"Unable to delete Customer.";
                     }
                 }
                 return response;

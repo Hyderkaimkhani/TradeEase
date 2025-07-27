@@ -65,7 +65,7 @@ public class OrderServiceTests
     [Fact]
     public async Task AddOrder_ShouldReturnError_IfUnassignedSuppliesMissing()
     {
-        var customer = new Customer { Id = 1, EntityType = "Customer", CreditBalance = 0 };
+        var customer = new Customer { Id = 1, CreditBalance = 0 };
         var truck = new Truck { Id = 1, TruckNumber = "XYZ" };
 
         _unitOfWorkMock.Setup(u => u.AdminRepository.GetCustomer(1)).ReturnsAsync(customer);
@@ -91,7 +91,7 @@ public class OrderServiceTests
     [Fact]
     public async Task AddOrder_ShouldSucceed_WhenValid()
     {
-        var customer = new Customer { Id = 1, EntityType = "Customer", CreditBalance = 0 };
+        var customer = new Customer { Id = 1, CreditBalance = 0 };
         var truck = new Truck { Id = 1, TruckNumber = "XYZ" };
         var supply = new Supply { FruitId = 1, Quantity = 10, TotalPrice = 500 };
 
@@ -133,7 +133,7 @@ public class OrderServiceTests
     [Fact]
     public async Task AddOrder_ShouldAutoAllocatePayment_WhenAdvanceBalanceExists()
     {
-        var customer = new Customer { Id = 1, EntityType = "Customer", CreditBalance = -500 };
+        var customer = new Customer { Id = 1, CreditBalance = -500 };
         var truck = new Truck { Id = 1 };
         var supply = new Supply { FruitId = 1, Quantity = 10, TotalPrice = 300 };
         var order = new Order { Id = 200, CustomerId = 1, TotalSellingPrice = 600 };
@@ -274,8 +274,7 @@ public class OrderServiceTests
         var customer = new Customer
         {
             Id = 123,
-            CreditBalance = 5000,
-            EntityType = EntityType.Customer.ToString()
+            CreditBalance = 5000
         };
 
         var truck = new Truck { Id = 1, TruckNumber = "TRK-001" };
@@ -340,8 +339,7 @@ public class OrderServiceTests
         var customer = new Customer
         {
             Id = 123,
-            CreditBalance = 5000,
-            EntityType = EntityType.Customer.ToString()
+            CreditBalance = 5000
         };
 
         var originalTotal = 1000; // 10 * 100

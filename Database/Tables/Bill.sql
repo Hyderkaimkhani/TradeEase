@@ -2,7 +2,6 @@
     [Id]            INT             IDENTITY (1, 1) NOT NULL,
     [BillNumber]    VARCHAR (50)    NOT NULL,
     [CompanyId]     INT			 NOT NULL,
-    [EntityType]    VARCHAR (10)    NOT NULL,
     [EntityId]      INT             NOT NULL,
     [EntityName]    VARCHAR (100)    NOT NULL,
     [FromDate]      DATETIME        NULL,
@@ -22,7 +21,6 @@
     [UpdatedDate]   DATETIME        CONSTRAINT [DF_Bill_UpdatedDate] DEFAULT (GETDATE()) NULL,
     CONSTRAINT [PK_Bill] PRIMARY KEY CLUSTERED ([Id] ASC),
     CONSTRAINT [FK_Bill_Customer] FOREIGN KEY ([EntityId]) REFERENCES [dbo].[Customer] ([Id]),
-    CONSTRAINT [CK_Bill_EntityType] CHECK ([EntityType] IN ('Customer','Supplier')),
     CONSTRAINT [CK_Bill_PaymentStatus] CHECK ([PaymentStatus] IN ('Unpaid','Partial','Paid')),
     CONSTRAINT [UQ_BillNumber] UNIQUE NONCLUSTERED ([BillNumber] ASC),
     CONSTRAINT [FK_Bill_Company] FOREIGN KEY ([CompanyId]) REFERENCES [dbo].[Company] ([Id])
@@ -30,4 +28,4 @@
 
 GO
 
-CREATE INDEX IDX_Bill_Entity ON [dbo].[Bill] (EntityType, EntityId);
+CREATE INDEX IDX_Bill_Entity ON [dbo].[Bill] (EntityId);

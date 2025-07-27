@@ -79,7 +79,7 @@ namespace TradeEase.Services.Test
             };
 
             _tokenServiceMock.Setup(t => t.GetClaimFromToken(It.IsAny<string>())).ReturnsAsync("user");
-            var supplier = new Customer { Id = 1, EntityType = "Supplier", CreditBalance = 0 };
+            var supplier = new Customer { Id = 1, CreditBalance = 0 };
             _unitOfWorkMock.Setup(u => u.AdminRepository.GetCustomer(1)).ReturnsAsync(supplier);
             _unitOfWorkMock.Setup(u => u.AdminRepository.GetTruck("ABC123")).ReturnsAsync((Truck?)null);
             _unitOfWorkMock.Setup(u => u.AdminRepository.AddTruck(It.IsAny<Truck>())).ReturnsAsync(new Truck { Id = 99 });
@@ -113,7 +113,7 @@ namespace TradeEase.Services.Test
             };
 
             decimal totalPrice =  model.Quantity * model.PurchasePrice; // TotalPrice = 10 * 100 = 1000
-            var supplier = new Customer { Id = 1, EntityType = "Supplier", CreditBalance = 300 };
+            var supplier = new Customer { Id = 1, CreditBalance = 300 };
             var truck = new Truck { Id = 1 };
             var supply = new Supply { Id = 10, SupplierId = 1 };
 
@@ -282,7 +282,6 @@ namespace TradeEase.Services.Test
             var supplier = new Customer
             {
                 Id = 1,
-                EntityType = "Supplier",
                 CreditBalance = 1000 // for assertion tracking
             };
 

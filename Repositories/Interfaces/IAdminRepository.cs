@@ -11,9 +11,9 @@ namespace Repositories.Interfaces
         Task<List<Customer>> GetAllCustomers();
         Task<Customer?> GetCustomerByName(string customerName);
 
-        Task<List<Customer>> GetCustomers(bool? isActive, string? entityType);
+        Task<List<Customer>> GetCustomers(bool? isActive);
 
-        Task<List<DropDownModel>> GetCustomersDropDown(string? entityType);
+        Task<List<DropDownModel>> GetCustomersDropDown();
         #endregion
 
         Task<Truck?> GetTruck(string truckNumber);

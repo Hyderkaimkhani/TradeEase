@@ -17,11 +17,6 @@ namespace Domain.Models.RequestModel
         [MaxLength(100)]
         public string? Address { get; set; }
 
-        [Required, MaxLength(20)]
-        [DefaultValue("Customer")]
-        [RegularExpression("Customer|Supplier", ErrorMessage = $"Invalid EntityType, Valid values are: Customer,Supplier")]
-        public string EntityType { get; set; } = "Customer";
-
         [MaxLength(50)]
         public string? PaymentTerms { get; set; } = "Cash";
 

@@ -10,6 +10,8 @@
         IPaymentRepository PaymentRepository { get; }
         IBillRepository BillRepository { get; }
         ICompanyRepository CompanyRepository { get; }
+        IAccountRepository AccountRepository { get; }
+        IAccountTransactionRepository   AccountTransactionRepository { get; }
 
         void DiscardChanges();
 

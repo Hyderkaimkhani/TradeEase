@@ -2,7 +2,6 @@
 {
     public class FilterModel
     {
-        public string? EntityType { get; set; } // "Customer" or "Supplier"
         public int? EntityId { get; set; }
         public string? ReferenceNumber { get; set; } // e.g., SupplyNumber or OrderNumber
         public DateTime? FromDate { get; set; }

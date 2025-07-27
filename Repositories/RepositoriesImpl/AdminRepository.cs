@@ -1,9 +1,7 @@
 ﻿using Domain.Entities;
 using Domain.Models.ResponseModel;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Repositories.Interfaces;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Repositories.RepositoriesImpl
 {
@@ -41,7 +39,7 @@ namespace Repositories.RepositoriesImpl
             return Customer;
         }
 
-        public async Task<List<Customer>> GetCustomers(bool? isActive, string? entityType)
+        public async Task<List<Customer>> GetCustomers(bool? isActive)
         {
             var query = _context.Set<Customer>().AsNoTracking();
 
@@ -50,24 +48,14 @@ namespace Repositories.RepositoriesImpl
                 query = query.Where(x => x.IsActive == isActive.Value);
             }
 
-            if (!string.IsNullOrEmpty(entityType))
-            {
-                query = query.Where(c => c.EntityType.ToLower() == entityType.ToLower());
-            }
-
             var customers = await query.ToListAsync();
 
             return customers;
         }
 
-        public async Task<List<DropDownModel>> GetCustomersDropDown(string? entityType)
+        public async Task<List<DropDownModel>> GetCustomersDropDown()
         {
             var query = _context.Set<Customer>().AsNoTracking();
-
-            if (!string.IsNullOrEmpty(entityType))
-            {
-                query = query.Where(c => c.EntityType.ToLower() == entityType.ToLower());
-            }
 
             var customers = await query.Where(c => c.IsActive)
             .Select(c => new DropDownModel

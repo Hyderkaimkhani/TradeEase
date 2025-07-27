@@ -52,9 +52,6 @@ namespace Repositories.RepositoriesImpl
         {
             var query = _context.Bill.AsNoTracking().Where(b => b.IsActive);
 
-            if (!string.IsNullOrEmpty(filter.EntityType))
-                query = query.Where(b => b.EntityType == filter.EntityType);
-
             if (filter.EntityId.HasValue)
                 query = query.Where(b => b.EntityId == filter.EntityId);
 

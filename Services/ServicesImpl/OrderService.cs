@@ -38,9 +38,9 @@ namespace Services.ServicesImpl
                 var response = new ResponseModel<OrderResponseModel>();
 
                 var customer = await unitOfWork.AdminRepository.GetCustomer(requestModel.CustomerId);
-                if (customer == null || customer.EntityType != EntityType.Customer.ToString())
+                if (customer == null)
                 {
-                    response.Message = $"{EntityType.Customer.ToString()} not found or mismatched";
+                    response.Message = $"Customer not found or mismatched";
                     response.IsError = true;
                     return response;
                 }
@@ -116,10 +116,10 @@ namespace Services.ServicesImpl
                         var allocatable = Math.Min(Math.Abs(customer.CreditBalance), order.TotalSellingPrice);
 
                         if (allocatable > 0)
-                        {
+                        {   
+                            // AccountTransaction
                             var payment = new Payment
                             {
-                                EntityType = EntityType.Customer.ToString(),
                                 EntityId = order.CustomerId,
                                 Amount = allocatable,
                                 PaymentDate = DateTime.Now,

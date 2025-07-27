@@ -12,10 +12,6 @@ namespace Domain.Entities
         public string Name { get; set; }
 
         [Required]
-        [MaxLength(50)]
-        public string EntityType { get; set; }
-
-        [Required]
         [MaxLength(20)]
         public string Phone { get; set; }
 
@@ -38,7 +34,6 @@ namespace Domain.Entities
         {
             Name = string.Empty;
             Phone = string.Empty;
-            EntityType = string.Empty;
         }
 
     }

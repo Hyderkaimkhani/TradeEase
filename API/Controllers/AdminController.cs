@@ -45,38 +45,24 @@ namespace API.Controllers
         }
 
         [HttpGet("Customer")]
-        public async Task<IActionResult> GetCustomers([FromQuery] bool? isActive, [FromQuery] string? entityType)
+        public async Task<IActionResult> GetCustomers([FromQuery] bool? isActive)
         {
-            if (!string.IsNullOrEmpty(entityType))
-            {
-                if (!Enum.TryParse<EntityType>(entityType, true, out _))
-                {
-                    var validTypes = string.Join(", ", Enum.GetNames(typeof(EntityType)));
-                    return BadRequest($"Invalid EntityType. Valid values are: {validTypes}");
-                }
-            }
-
-            return Ok(await _adminService.GetCustomers(isActive, entityType));
+            var response = await _adminService.GetCustomers(isActive);
+            return Ok(response);
         }
 
         [HttpGet("Customer/dropdown")]
         public async Task<IActionResult> GetCustomersDropDown()
         {
-            return Ok(await _adminService.GetCustomersDropDown(EntityType.Customer.ToString()));
+            return Ok(await _adminService.GetCustomersDropDown());
 
         }
 
-        [HttpGet("Supplier/dropdown")]
-        public async Task<IActionResult> GetSuppliers()
-        {
-            return Ok(await _adminService.GetCustomersDropDown(EntityType.Supplier.ToString()));
-
-        }
 
         [HttpGet("Entity/dropdown")]
         public async Task<IActionResult> GetAllCustomersSuppliers()
         {
-            return Ok(await _adminService.GetCustomersDropDown(string.Empty));
+            return Ok(await _adminService.GetCustomersDropDown());
 
         }
 

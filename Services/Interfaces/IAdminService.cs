@@ -15,9 +15,9 @@ namespace Services.Interfaces
 
         Task<ResponseModel<List<CustomerResponseModel>>> GetAllCustomers();
 
-        Task<ResponseModel<List<CustomerResponseModel>>> GetCustomers(bool? isActive, string? entityType);
+        Task<ResponseModel<List<CustomerResponseModel>>> GetCustomers(bool? isActive);
 
-        Task<List<DropDownModel>> GetCustomersDropDown(string? entityType);
+        Task<List<DropDownModel>> GetCustomersDropDown();
 
         Task<ResponseModel<CustomerResponseModel>> UpdateCustomer(CustomerUpdateModel customerModel);
 

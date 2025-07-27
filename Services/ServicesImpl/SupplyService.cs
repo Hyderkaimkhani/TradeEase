@@ -38,9 +38,9 @@ namespace Services.ServicesImpl
                 var response = new ResponseModel<SupplyResponseModel>();
 
                 var supplier = await unitOfWork.AdminRepository.GetCustomer(requestModel.SupplierId);
-                if (supplier == null || supplier.EntityType != EntityType.Supplier.ToString())
+                if (supplier == null)
                 {
-                    response.Message = $"{EntityType.Supplier.ToString()} not found or mismatched";
+                    response.Message = $"Supplier not found or mismatched";
                     response.IsError = true;
                     return response;
                 }
@@ -76,7 +76,6 @@ namespace Services.ServicesImpl
                         {
                             var payment = new Payment
                             {
-                                EntityType = EntityType.Supplier.ToString(),
                                 EntityId = supply.SupplierId,
                                 Amount = allocatable,
                                 PaymentDate = DateTime.Now,

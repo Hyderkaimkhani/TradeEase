@@ -5,7 +5,7 @@ namespace Domain.Entities
     public class Payment : AuditableEntity
     {
         public int Id { get; set; }
-        public string EntityType { get; set; } = string.Empty;// Customer / Supplier
+        public string TransactionType { get; set; } = string.Empty;
         public int EntityId { get; set; }
         public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; } = DateTime.Now;

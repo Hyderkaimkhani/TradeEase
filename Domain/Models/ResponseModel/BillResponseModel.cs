@@ -6,8 +6,6 @@
 
         public string BillNumber { get; set; } = string.Empty;
 
-        public string EntityType { get; set; } = string.Empty; // 'Customer' or 'Supplier'
-
         public int EntityId { get; set; }
 
         public string EntityName { get; set; } = string.Empty;

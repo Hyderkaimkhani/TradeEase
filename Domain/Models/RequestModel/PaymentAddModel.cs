@@ -6,8 +6,8 @@ namespace Domain.Models.RequestModel
     public class PaymentAddModel
     {
         [Required]
-        [RegularExpression("^(Customer|Supplier)$", ErrorMessage = "Invalid EntityType")]
-        public string EntityType { get; set; } = string.Empty;// Customer / Supplier
+        [RegularExpression("^(Credit|Debit)$", ErrorMessage = "Invalid TransactionDirection")]
+        public string TransactionDirection { get; set; } = string.Empty; // "Credit=>Incoming" or "Debit=>Outgoing"  
 
         [Required]
         public int EntityId { get; set; }

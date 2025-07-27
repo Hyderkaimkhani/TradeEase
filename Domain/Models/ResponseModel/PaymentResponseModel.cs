@@ -5,7 +5,7 @@ namespace Domain.Models.ResponseModel
     public class PaymentResponseModel
     {
         public int Id { get; set; }
-        public string EntityType { get; set; } = string.Empty;// Customer / Supplier
+        public string TransactionDirection { get; set; } = string.Empty;    // Credit / Debit
         public int EntityId { get; set; }
         public decimal Amount { get; set; }
         public DateTime PaymentDate { get; set; } = DateTime.Now;

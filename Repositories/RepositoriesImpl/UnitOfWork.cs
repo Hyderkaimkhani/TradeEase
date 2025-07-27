@@ -18,6 +18,8 @@ namespace Repositories.RepositoriesImpl
         private IPaymentRepository? _paymentRepository;
         private IBillRepository? _billRepository;
         private ICompanyRepository? _companyRepository;
+        private IAccountRepository? _accountRepository; 
+        private IAccountTransactionRepository? _accountTransactionRepository;
 
         private readonly Context.Context _context;
         private readonly ICurrentUserService _currentUserService;
@@ -128,6 +130,30 @@ namespace Repositories.RepositoriesImpl
                     _companyRepository = new CompanyRepository(_context);
                 }
                 return _companyRepository;
+            }
+        }
+
+        public IAccountRepository AccountRepository
+        {
+            get
+            {
+                if (_accountRepository == null)
+                {
+                    _accountRepository = new AccountRepository(_context);
+                }
+                return _accountRepository;
+            }
+        }
+        
+        public IAccountTransactionRepository AccountTransactionRepository
+        {
+            get
+            {
+                if (_accountTransactionRepository == null)
+                {
+                    _accountTransactionRepository = new AccountTransactionRepository(_context);
+                }
+                return _accountTransactionRepository;
             }
         }
 

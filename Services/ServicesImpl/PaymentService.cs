@@ -32,16 +32,16 @@ namespace Services.ServicesImpl
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var customer = await unitOfWork.AdminRepository.GetCustomer(requestModel.EntityId);
-                if (customer == null || customer.EntityType != requestModel.EntityType)
+                if (customer == null)
                 {
-                    response.Message = $"{requestModel.EntityType} not found or mismatched";
+                    response.Message = $"Customer not found or mismatched";
                     response.IsError = true;
                     return response;
                 }
 
+                // AccountTransaction
                 var payment = new Payment
                 {
-                    EntityType = requestModel.EntityType,
                     EntityId = requestModel.EntityId,
                     Amount = requestModel.Amount,
                     PaymentDate = requestModel.PaymentDate,
@@ -54,7 +54,7 @@ namespace Services.ServicesImpl
                 await unitOfWork.SaveChangesAsync();
                 decimal remainingAmount = requestModel.Amount;
 
-                if (requestModel.EntityType == EntityType.Customer.ToString())
+                if (requestModel.TransactionDirection == TransactionDirection.Credit.ToString())
                 {
                     if (customer.CreditBalance < 0)
                     {
@@ -87,7 +87,7 @@ namespace Services.ServicesImpl
 
                     customer.CreditBalance -= requestModel.Amount;
                 }
-                else if (requestModel.EntityType == EntityType.Supplier.ToString())
+                else if (requestModel.TransactionDirection == TransactionDirection.Debit.ToString())
                 {
                     if (customer.CreditBalance > 0)
                     {
@@ -136,6 +136,7 @@ namespace Services.ServicesImpl
             var response = new ResponseModel<PaymentResponseModel>();
             using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
 
+            var accountTransaction = await unitOfWork.AccountTransactionRepository.GetAccountTransaction(requestModel.Id);
             var payment = await unitOfWork.PaymentRepository.GetPayment(requestModel.Id);
             if (payment == null || !payment.IsActive)
             {
@@ -148,10 +149,10 @@ namespace Services.ServicesImpl
             {
 
                 var customer = await unitOfWork.AdminRepository.GetCustomer(payment.EntityId);
-                if (customer == null || customer.EntityType != payment.EntityType)
+                if (customer == null)
                 {
                     response.IsError = true;
-                    response.Message = $"{payment.EntityType} not found or mismatched";
+                    response.Message = $"Customer not found";
                     return response;
                 }
 
@@ -197,7 +198,7 @@ namespace Services.ServicesImpl
 
                 decimal remainingAmount = requestModel.Amount;
 
-                if (payment.EntityType == EntityType.Customer.ToString())
+                if (accountTransaction.TransactionDirection == TransactionDirection.Credit.ToString())
                 {
                     if (customer.CreditBalance < 0)
                     {
@@ -232,7 +233,7 @@ namespace Services.ServicesImpl
                     decimal difference = requestModel.Amount - oldAmount;
                     customer.CreditBalance -= difference;
                 }
-                else if (payment.EntityType == EntityType.Supplier.ToString())
+                else if (accountTransaction.TransactionDirection == TransactionDirection.Debit.ToString())
                 {
                     if (customer.CreditBalance > 0)
                     {
@@ -367,6 +368,7 @@ namespace Services.ServicesImpl
             using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
 
             var payment = await unitOfWork.PaymentRepository.GetPayment(paymentId);
+            var accountTransaction = await unitOfWork.AccountTransactionRepository.GetAccountTransaction(paymentId);
             if (payment == null || !payment.IsActive)
             {
                 response.IsError = true;
@@ -375,10 +377,10 @@ namespace Services.ServicesImpl
             }
 
             var customer = await unitOfWork.AdminRepository.GetCustomer(payment.EntityId);
-            if (customer == null || customer.EntityType != payment.EntityType)
+            if (customer == null)
             {
                 response.IsError = true;
-                response.Message = $"{payment.EntityType} not found or mismatched";
+                response.Message = $"Customer not found";
                 return response;
             }
 
@@ -418,11 +420,11 @@ namespace Services.ServicesImpl
             }
 
             // Reverse customer balance
-            if (payment.EntityType == EntityType.Customer.ToString())
+            if (accountTransaction.TransactionDirection == TransactionDirection.Credit.ToString())
             {
                 customer.CreditBalance += payment.Amount;
             }
-            else if (payment.EntityType == EntityType.Supplier.ToString())
+            else if (accountTransaction.TransactionDirection == TransactionDirection.Debit.ToString())
             {
                 customer.CreditBalance -= payment.Amount;
             }
