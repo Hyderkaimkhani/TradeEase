@@ -3,7 +3,7 @@
     public class FilterModel
     {
         public int? EntityId { get; set; }
-        public string? ReferenceNumber { get; set; } // e.g., SupplyNumber or OrderNumber
+        public string? ReferenceNumber { get; set; } // e.g., SupplyNumber, OrderNumber, Account Number
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
 

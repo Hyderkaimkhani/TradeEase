@@ -39,6 +39,9 @@ namespace Repositories.RepositoriesImpl
         {
             var query = _context.Account.AsNoTracking();
 
+            if (!string.IsNullOrEmpty(filter.ReferenceNumber))
+                query = query.Where(b => EF.Functions.Like(b.AccountNumber, $"%{filter.ReferenceNumber}%"));
+
             var totalCount = await query.CountAsync();
 
             var Accounts = await query

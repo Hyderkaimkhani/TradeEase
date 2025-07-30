@@ -14,6 +14,10 @@ namespace Domain.AutoMapperProfiles
             CreateMap<CompanyUpdateRequestModel, Company>();
             CreateMap<Company, CompanyResponseModel>();
 
+            CreateMap<AccountAddModel, Account>();
+            CreateMap<AccountUpdateModel, Account>();
+            CreateMap<Account, AccountResponseModel>();
+
 
             CreateMap<CustomerAddModel, Customer>();
             CreateMap<CustomerUpdateModel, Customer>();
