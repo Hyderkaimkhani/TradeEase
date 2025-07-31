@@ -21,9 +21,8 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<Bill> AddBill(Bill entity)
         {
-            _context.Bill.Add(entity);
-            await _context.SaveChangesAsync();
-            return entity;
+            var bill = _context.Bill.Add(entity);
+            return await Task.FromResult(bill.Entity);
         }
 
         public async Task<Bill?> GetBill(int id)

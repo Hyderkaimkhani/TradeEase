@@ -2,7 +2,7 @@
     Id INT IDENTITY(1,1) PRIMARY KEY,
     CompanyId INT NOT NULL,
     [Name] NVARCHAR(100) NOT NULL,
-    [AccountType] VARCHAR(20) NOT NULL CHECK ([AccountType] IN ('Cash', 'Bank', 'Wallet', 'Other')),
+    [Type] VARCHAR(20) NOT NULL,
     AccountNumber NVARCHAR(50) NULL,
     BankName NVARCHAR(100) NULL,
     OpeningBalance DECIMAL(18,2) DEFAULT 0,

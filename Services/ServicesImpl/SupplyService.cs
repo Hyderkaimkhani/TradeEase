@@ -133,6 +133,19 @@ namespace Services.ServicesImpl
             {
                 var supply = await unitOfWork.SupplyRepository.GetSupply(requestModel.Id);
 
+                if (supply == null)
+                {
+
+                    response.IsError = true;
+                    response.Message = "Supply does not exists.";
+
+                }
+                else if(!supply.IsActive)
+                {
+                    response.IsError = true;
+                    response.Message = "Supply is inactive and cannot be edited. Contact support if you need to reopen it.";
+                }
+
                 if (supply != null)
                 {
                     //Restrict to change price and quantity if payment made against this supply.
@@ -151,7 +164,7 @@ namespace Services.ServicesImpl
                     }
 
                     Truck? truck = await unitOfWork.AdminRepository.GetTruck(requestModel.TruckNumber);
-                    
+
                     if (truck == null)
                     {
                         var truckEntity = new Truck
@@ -190,11 +203,7 @@ namespace Services.ServicesImpl
                         response.Message = "Unable to update Supply.";
                     }
                 }
-                else
-                {
-                    response.IsError = true;
-                    response.Message = "Supply does not exists.";
-                }
+
             }
             return response;
         }

@@ -17,9 +17,8 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<AccountTransaction> AddAccountTransaction(AccountTransaction entity)
         {
-            _context.AccountTransaction.Add(entity);
-            await _context.SaveChangesAsync();
-            return entity;
+            var accountTransaction = _context.AccountTransaction.Add(entity);
+            return await Task.FromResult(accountTransaction.Entity!);
         }
 
         public async Task<AccountTransaction?> GetAccountTransaction(int id)

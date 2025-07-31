@@ -1,4 +1,5 @@
 ﻿using Domain.Models.RequestModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services.Interfaces;
 
@@ -6,6 +7,7 @@ namespace API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class AccountController : ControllerBase
     {
         private readonly IAccountService AccountService;
@@ -36,7 +38,7 @@ namespace API.Controllers
             return Ok(result);
         }
 
-        [HttpPut]
+        [HttpPost("Update")]
         public async Task<IActionResult> UpdateAccount([FromBody] AccountUpdateModel model)
         {
             var result = await AccountService.UpdateAccount(model);

@@ -183,6 +183,11 @@ namespace Services.ServicesImpl
                     response.IsError = true;
                     response.Message = "No Order found";
                 }
+                else if(!order.IsActive)
+                {
+                    response.IsError = true;
+                    response.Message = "Order is inactive and cannot be edited. Contact support if you need to reopen it.";
+                }
                 else
                 {
                     Truck? truck = await unitOfWork.AdminRepository.GetTruck(requestModel.TruckNumber);

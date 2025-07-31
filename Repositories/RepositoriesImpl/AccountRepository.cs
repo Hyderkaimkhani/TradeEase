@@ -18,15 +18,21 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<Account> AddAccount(Account entity)
         {
-            _context.Account.Add(entity);
-            await _context.SaveChangesAsync();
-            return entity;
+            var account = _context.Account.Add(entity);
+            return await Task.FromResult(account.Entity!);
         }
 
         public async Task<Account?> GetAccount(int id)
         {
             return await _context.Account
                 .FirstOrDefaultAsync(b => b.Id == id);
+        }
+
+
+        public async Task<Account?> GetAccount(string name)
+        {
+            return await _context.Account
+                .FirstOrDefaultAsync(b => b.Name == name);
         }
 
         public async Task<Account?> GetAccountWithDetails(int id)

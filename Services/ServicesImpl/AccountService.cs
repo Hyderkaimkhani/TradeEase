@@ -24,9 +24,19 @@ namespace Services.ServicesImpl
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<AccountResponseModel>();
-                var account = mapper.Map<Account>(model);
+
+                var account = await unitOfWork.AccountRepository.GetAccount(model.Name);
+
+                if (account != null)
+                {
+                    response.IsError = true;
+                    response.Message = "Account with same Name already exists";
+                }
+
+                account = mapper.Map<Account>(model);
 
                 account.IsActive = true;
+                account.CurrentBalance += account.OpeningBalance;
                 var added = await unitOfWork.AccountRepository.AddAccount(account);
 
                 if (await unitOfWork.SaveChangesAsync())
@@ -65,7 +75,8 @@ namespace Services.ServicesImpl
                 }
                 else
                 {
-                    response.Model = mapper.Map<List<AccountResponseModel>>(accounts);
+                    response.Model = mapper.Map<List<AccountResponseModel>>(accounts.Model);
+                    response.TotalCount = accounts.TotalCount;
                 }
 
                 return response;
@@ -77,26 +88,41 @@ namespace Services.ServicesImpl
             var response = new ResponseModel<AccountResponseModel>();
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
-                var Account = await unitOfWork.AccountRepository.GetAccount(model.Id);
-                if (Account == null)
+                var account = await unitOfWork.AccountRepository.GetAccount(model.Name);
+
+                if (account != null && account.Id != model.Id)
+                {
+                    response.IsError = true;
+                    response.Message = "Account with same Name already exists";
+                }
+
+                account = await unitOfWork.AccountRepository.GetAccount(model.Id);
+                if (account == null)
                 {
                     response.Message = "Account not found";
                     response.IsError = true;
-                    return response;
+
                 }
-
-                Account.Name = model.Name;
-                Account.Type = model.Type;
-                Account.AccountNumber = model.AccountNumber;
-                Account.BankName = model.BankName;
-
-                // AccountTransaction entry if balance changed
-                //Account.CurrentBalance = model.CurrentBalance;
-
-                if (await unitOfWork.SaveChangesAsync())
+                else if (!account.IsActive)
                 {
-                    response.Model = mapper.Map<AccountResponseModel>(Account);
-                    response.Message = "Account updated successfully";
+                    response.Message = "Account is inactive and cannot be edited. Contact support if you need to reopen it.";
+                    response.IsError = true;
+                }
+                else
+                {
+                    account.Name = model.Name;
+                    account.Type = model.Type;
+                    account.AccountNumber = model.AccountNumber;
+                    account.BankName = model.BankName;
+
+                    // AccountTransaction entry if balance changed
+                    //Account.CurrentBalance = model.CurrentBalance;
+
+                    if (await unitOfWork.SaveChangesAsync())
+                    {
+                        response.Model = mapper.Map<AccountResponseModel>(account);
+                        response.Message = "Account updated successfully";
+                    }
                 }
                 return response;
             }

@@ -65,7 +65,7 @@ namespace Repositories.Context
             modelBuilder.Entity<PaymentAllocation>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
             modelBuilder.Entity<Payment>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
             modelBuilder.Entity<Truck>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
-            modelBuilder.Entity<User>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
+            //modelBuilder.Entity<User>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
             modelBuilder.Entity<Bill>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
 
         }
