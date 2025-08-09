@@ -1,0 +1,21 @@
+namespace Domain.Models.ResponseModel
+{
+    public class AccountStatementResponseModel
+    {
+        public int AccountId { get; set; }
+        public string AccountName { get; set; }
+        public string AccountType { get; set; }
+        public DateTime FromDate { get; set; }
+        public DateTime ToDate { get; set; }
+        public decimal OpeningBalance { get; set; }
+        public decimal ClosingBalance { get; set; }
+        public List<AccountTransactionResponseModel> Transactions { get; set; }
+        
+        public AccountStatementResponseModel()
+        {
+            AccountName = string.Empty;
+            AccountType = string.Empty;
+            Transactions = new List<AccountTransactionResponseModel>();
+        }
+    }
+} 

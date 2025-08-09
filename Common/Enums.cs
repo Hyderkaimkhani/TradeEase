@@ -32,10 +32,10 @@
 
     public enum TransactionDirection
     {
-        Credit,     // Incoming
-        Debit       // Outgoing
+        Credit,     // Outgoing
+        Debit       // Incoming
     }
-    
+
     public enum TransactionType
     {
         Payment,
@@ -45,5 +45,26 @@
         Adjustment,
         Order,
         Supply,
+    }
+
+    public enum AccountType
+    {
+        Recievable,
+        Payable,
+        Cash,
+        Bank,
+        MobilePayment,
+        CreditCard,
+        Other
+    }
+
+    public enum ReferenceType
+    {
+        Order, 
+        Supply, 
+        Expense, 
+        Payment, 
+        Transfer, 
+        OpeningBalance
     }
 }

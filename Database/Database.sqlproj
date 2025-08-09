@@ -68,8 +68,8 @@
     <Build Include="Tables\BillDetail.sql" />
     <Build Include="Tables\Bill.sql" />
     <Build Include="Tables\Company.sql" />
-    <Build Include="Tables\AccountTransaction.sql" />
     <Build Include="Tables\Account.sql" />
+    <Build Include="Tables\AccountTransaction.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />

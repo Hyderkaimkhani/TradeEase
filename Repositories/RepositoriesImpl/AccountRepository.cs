@@ -3,6 +3,7 @@ using Domain.Models.RequestModel;
 using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Interfaces;
+using Domain.Models.ResponseModel;
 
 namespace Repositories.RepositoriesImpl
 {
@@ -41,6 +42,18 @@ namespace Repositories.RepositoriesImpl
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
 
+        public async Task<Account?> GetAccountReceivable()
+        {
+            return await _context.Account
+                .FirstOrDefaultAsync(b => b.Type == "Receivable");
+        }
+        public async Task<Account?> GetAccountPayable()
+        {
+            return await _context.Account
+                .FirstOrDefaultAsync(b => b.Type == "Payable");
+        }
+
+
         public async Task<PaginatedResponseModel<Account>> GetAccounts(FilterModel filter)
         {
             var query = _context.Account.AsNoTracking();
@@ -62,5 +75,31 @@ namespace Repositories.RepositoriesImpl
                 TotalCount = totalCount
             };
         }
+
+        public async Task<List<Account>> GetAccountsByType(string type)
+        {
+            var accounts = await _context.Account.Where(x => x.Type == type).ToListAsync();
+
+            return accounts;
+        }
+
+        public async Task<List<DropDownModel>> GetAccounts()
+        {
+            var excludedTypes = new[] { "Receivable", "Payable" };
+
+            var accounts = await _context.Set<Account>()
+                .AsNoTracking()
+                .Where(a => a.IsActive && !excludedTypes.Contains(a.Type))
+                .Select(a => new DropDownModel
+                {
+                    Key = a.Id,
+                    Value = a.Name
+                })
+                .OrderBy(a => a.Value)
+                .ToListAsync();
+
+            return accounts;
+        }
+
     }
 }

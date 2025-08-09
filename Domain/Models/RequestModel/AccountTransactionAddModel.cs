@@ -1,12 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
-namespace Domain.Entities
+namespace Domain.Models.RequestModel
 {
-    public class AccountTransaction : AuditableEntity
+    public class AccountTransactionAddModel
     {
-        public int Id { get; set; }
-
+        [Required]
         public int AccountId { get; set; }
         
         [Required]
@@ -15,13 +13,14 @@ namespace Domain.Entities
         
         [Required]
         [MaxLength(10)]
-        public string TransactionDirection { get; set; } = "Credit"; // Debit, Credit
+        public string TransactionDirection { get; set; } // Debit, Credit
         
-        [Column(TypeName = "decimal(10,2)")]
+        [Required]
+        [Range(0.01, double.MaxValue, ErrorMessage = "Amount must be greater than 0")]
         public decimal Amount { get; set; }
         
-        public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
-        
+        public DateTime? TransactionDate { get; set; } = DateTime.UtcNow;
+
         [MaxLength(50)]
         public string? PaymentMethod { get; set; } // Cash, Bank Transfer, Mobile Payment
         
@@ -33,25 +32,22 @@ namespace Domain.Entities
         [MaxLength(20)]
         public string ReferenceType { get; set; } // Order, Supply, Expense, Payment, Transfer
         
-        public int? ReferenceId { get; set; }
+        [Required]
+        public int ReferenceId { get; set; }
         
         [MaxLength(50)]
         public string? Category { get; set; } // Rent, Salary, Utilities, Bonus, Commission, etc.
         
         [MaxLength(100)]
-        public string? Party { get; set; } // Paid To / Receive From
-
+        public string? Party { get; set; } // Who was paid for expenses
+        
         public int? ToAccountId { get; set; } // Destination account for transfers
         
-        // Navigation properties
-        public virtual Account Account { get; set; }
-        public virtual Account ToAccount { get; set; }
-        public virtual Customer Customer { get; set; }
-        
-        public AccountTransaction()
+        public AccountTransactionAddModel()
         {
             TransactionType = string.Empty;
+            TransactionDirection = "Credit";
             ReferenceType = string.Empty;
         }
     }
-}
+} 

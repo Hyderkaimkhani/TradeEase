@@ -67,6 +67,11 @@ namespace Repositories.Context
             modelBuilder.Entity<Truck>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
             //modelBuilder.Entity<User>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
             modelBuilder.Entity<Bill>().HasQueryFilter(p => p.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<Account>().HasQueryFilter(a => a.CompanyId == CurrentCompanyId);
+            modelBuilder.Entity<AccountTransaction>().HasQueryFilter(t => t.CompanyId == CurrentCompanyId)
+               .HasOne(a => a.Customer)
+               .WithMany()
+               .HasForeignKey(a => a.EntityId); ;
 
         }
     }

@@ -25,6 +25,7 @@ namespace Services.Config
             _services.AddTransient<IBillService, BillService>();
             _services.AddTransient<ICompanyService, CompanyService>();
             _services.AddTransient<IAccountService, AccountService>();
+            _services.AddTransient<IAccountTransactionService, AccountTransactionService>();
             _services.AddTransient<INotificationService, NotificationService>();
 
         }

@@ -11,5 +11,7 @@ namespace Services.Interfaces
         Task<PaginatedResponseModel<AccountResponseModel>> GetAccounts(FilterModel filterModel);
         Task<ResponseModel<AccountResponseModel>> UpdateAccount(AccountUpdateModel model);
         Task<ResponseModel<bool>> DeleteAccount(int id);
+        Task<List<DropDownModel>> GetAccountsDropDown();
+        Task<List<AccountResponseModel>> GetAccountsByType(string type);
     }
 }

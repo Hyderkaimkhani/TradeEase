@@ -5,6 +5,7 @@ using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
 using Repositories.Interfaces;
 using Services.Interfaces;
+using System.Security.Principal;
 
 namespace Services.ServicesImpl
 {
@@ -133,22 +134,47 @@ namespace Services.ServicesImpl
             var response = new ResponseModel<bool>();
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
-                var Account = await unitOfWork.AccountRepository.GetAccount(id);
-                if (Account == null)
+                var account = await unitOfWork.AccountRepository.GetAccount(id);
+                if (account == null)
                 {
                     response.Message = "Account not found";
                     response.IsError = true;
-                    return response;
                 }
-                Account.IsActive = false;
-                if (await unitOfWork.SaveChangesAsync())
+                else if (account.CurrentBalance != 0)
                 {
-                    response.Model = true;
-                    response.Message = "Account deleted successfully";
+                    response.IsError = true;
+                    response.Message = "Account cannot be deleted as it has a non-zero balance. Please settle the balance before deletion.";
+                }
+                else
+                {
+                    account.IsActive = false;
+                    if (await unitOfWork.SaveChangesAsync())
+                    {
+                        response.Model = true;
+                        response.Message = "Account deleted successfully";
+                    }
                 }
                 return response;
             }
         }
 
+        public async Task<List<DropDownModel>> GetAccountsDropDown()
+        {
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+            {
+                var accounts = await unitOfWork.AccountRepository.GetAccounts();
+                return accounts;
+            }
+        }
+
+        public async Task<List<AccountResponseModel>> GetAccountsByType(string type)
+        {
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+            {
+                var accounts = await unitOfWork.AccountRepository.GetAccountsByType(type);
+                var response = mapper.Map<List<AccountResponseModel>>(accounts);
+                return response;
+            }
+        }
     }
 }

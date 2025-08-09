@@ -4,7 +4,6 @@ using Domain.Entities;
 using Domain.Models;
 using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
-using Microsoft.Extensions.Configuration;
 using Repositories.Interfaces;
 using Services.Interfaces;
 
@@ -13,30 +12,28 @@ namespace Services.ServicesImpl
     public class AdminService : IAdminService
     {
         private readonly IMapper autoMapper;
-        private readonly IConfiguration configuration;
         private readonly IUnitOfWorkFactory unitOfWorkFactory;
-        private readonly ITokenService tokenService;
+        private readonly IAccountTransactionService accountTransactionService;
 
         public AdminService(IUnitOfWorkFactory unitOfWorkFactory,
               IMapper autoMapper,
-              IConfiguration configuration,
-              ITokenService tokenService
+              ITokenService tokenService,
+              IAccountTransactionService accountTransactionService
             )
         {
             this.autoMapper = autoMapper;
-            this.configuration = configuration;
             this.unitOfWorkFactory = unitOfWorkFactory;
-            this.tokenService = tokenService;
+            this.accountTransactionService = accountTransactionService;
         }
 
         #region Customer
-        public async Task<ResponseModel<CustomerResponseModel>> AddCustomer(CustomerAddModel customerAddModel)
+        public async Task<ResponseModel<CustomerResponseModel>> AddCustomer(CustomerAddModel requestModel)
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<CustomerResponseModel>();
 
-                var customerExists = await unitOfWork.AdminRepository.GetCustomerByName(customerAddModel.Name);
+                var customerExists = await unitOfWork.AdminRepository.GetCustomerByName(requestModel.Name);
 
                 if (customerExists != null)
                 {
@@ -45,18 +42,41 @@ namespace Services.ServicesImpl
                 }
                 else
                 {
-                    var customer = autoMapper.Map<Customer>(customerAddModel);
+                    var customer = autoMapper.Map<Customer>(requestModel);
 
                     customer.IsActive = true;
-                    //customer.CreatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
-                    //customer.CreatedDate = DateTime.UtcNow;
-                    //customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
-                    //customer.UpdatedDate = DateTime.UtcNow;
-
                     var addedCustomer = await unitOfWork.AdminRepository.AddCustomer(customer);
-                    if (addedCustomer != null)
+                    if (requestModel.CreditBalance != null && requestModel.CreditBalance != 0)
                     {
-                        await unitOfWork.SaveChangesAsync();
+                        Account? account = new Account();
+                        if (requestModel.CreditBalance > 0)
+                        {
+                            account = await unitOfWork.AccountRepository.GetAccountReceivable();
+
+                        }
+                        else if (requestModel.CreditBalance < 0)
+                        {
+                            account = await unitOfWork.AccountRepository.GetAccountPayable();
+                        }
+
+                        if (account == null)
+                        {
+                            response.IsError = true;
+                            response.Message = "Default account not found. Please create a default account first.";
+                            return response;
+                        }
+                        else
+                        {
+                            var addTransactionModel = GetOpeningBalanceTransaction(account.Id, customer.Id, (decimal)requestModel.CreditBalance);
+
+                            var transaction = autoMapper.Map<AccountTransaction>(addTransactionModel);
+                            transaction.Customer = customer;
+                            var addedTransaction = await unitOfWork.AccountTransactionRepository.AddTransaction(transaction);
+                            accountTransactionService.UpdateAccountBalance(account, transaction);
+                        }
+                    }              
+                    if (await unitOfWork.SaveChangesAsync())
+                    {
                         response.Message = $"Customer added successfuly";
                         response.Model = autoMapper.Map<CustomerResponseModel>(addedCustomer);
 
@@ -84,7 +104,7 @@ namespace Services.ServicesImpl
                     response.IsError = true;
                     response.Message = $"Customer does not exists";
                 }
-                else if(!customer.IsActive)
+                else if (!customer.IsActive)
                 {
                     response.IsError = true;
                     response.Message = $"Customer is inactive. Please activate the customer before updating.";
@@ -107,6 +127,7 @@ namespace Services.ServicesImpl
 
                         if (await unitOfWork.SaveChangesAsync())
                         {
+
                             response.Message = $"Customer updated successfully";
                             response.Model = autoMapper.Map<CustomerResponseModel>(customer);
                         }
@@ -209,11 +230,14 @@ namespace Services.ServicesImpl
                     response.IsError = true;
                     response.Message = "Customer does not exists";
                 }
+                else if (customer.CreditBalance != 0)
+                {
+                    response.IsError = true;
+                    response.Message = "Customer with credit balance can't deleted.";
+                }
                 else
                 {
                     customer.IsActive = false;
-                    //customer.UpdatedBy = await tokenService.GetClaimFromToken(ClaimType.Custom_Sub);
-                    //customer.UpdatedDate = DateTime.UtcNow;
 
                     if (await unitOfWork.SaveChangesAsync())
                     {
@@ -269,6 +293,21 @@ namespace Services.ServicesImpl
             }
 
             return customer;
+        }
+
+        private AccountTransactionAddModel GetOpeningBalanceTransaction(int virtualAccountId, int entityId, decimal balance)
+        {
+            return new AccountTransactionAddModel
+            {
+                AccountId = virtualAccountId,
+                TransactionType = TransactionType.Adjustment.ToString(),
+                TransactionDirection = balance > 0 ? TransactionDirection.Debit.ToString() : TransactionDirection.Credit.ToString(),
+                Amount = Math.Abs(balance),
+                EntityId = entityId,
+                ReferenceType = ReferenceType.OpeningBalance.ToString(),
+                ReferenceId = 0,
+                Notes = "Opening balance for party"
+            };
         }
 
         #endregion

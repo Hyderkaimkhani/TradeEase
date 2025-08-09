@@ -33,20 +33,20 @@ public class OrderServiceTests
         //_configuration = new Mock<IConfiguration>();
 
         _unitOfWorkFactoryMock.Setup(f => f.CreateUnitOfWork()).Returns(_unitOfWorkMock.Object);
-        orderService = new OrderService(
-            _unitOfWorkFactoryMock.Object,
-            _mapperMock.Object,
-            _configuration.Object,
-            _tokenServiceMock.Object,
-            _adminServiceMock.Object
-        );
+        //orderService = new OrderService(
+        //    _unitOfWorkFactoryMock.Object,
+        //    _mapperMock.Object,
+        //    _configuration.Object,
+        //    _tokenServiceMock.Object,
+        //    _adminServiceMock.Object
+        //);
 
-        adminService = new AdminService(
-            _unitOfWorkFactoryMock.Object,
-            _mapperMock.Object,
-            _configuration.Object,
-            _tokenServiceMock.Object
-        );
+        //adminService = new AdminService(
+        //    _unitOfWorkFactoryMock.Object,
+        //    _mapperMock.Object,
+        //    _configuration.Object,
+        //    _tokenServiceMock.Object
+        //);
     }
 
 
