@@ -5,8 +5,10 @@ using Domain.Models;
 using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
 using Microsoft.Extensions.Configuration;
+using Org.BouncyCastle.Asn1.X509;
 using Repositories.Interfaces;
 using Services.Interfaces;
+using System.Security.Principal;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 namespace Services.ServicesImpl
@@ -15,20 +17,20 @@ namespace Services.ServicesImpl
     {
         private readonly IMapper autoMapper;
         private readonly IUnitOfWorkFactory unitOfWorkFactory;
-        private readonly ITokenService tokenService;
         private readonly IAdminService adminService;
+        private readonly IAccountTransactionService accountTransactionService;
 
         public SupplyService(IUnitOfWorkFactory unitOfWorkFactory,
               IMapper autoMapper,
               IConfiguration configuration,
-              ITokenService tokenService,
-              IAdminService adminService
+              IAdminService adminService,
+              IAccountTransactionService accountTransactionService
             )
         {
             this.autoMapper = autoMapper;
             this.unitOfWorkFactory = unitOfWorkFactory;
-            this.tokenService = tokenService;
             this.adminService = adminService;
+            this.accountTransactionService = accountTransactionService;
         }
 
         public async Task<ResponseModel<SupplyResponseModel>> AddSupply(SupplyAddModel requestModel)
@@ -69,45 +71,57 @@ namespace Services.ServicesImpl
                 var addedSupply = await unitOfWork.SupplyRepository.AddSupply(supply);
                 if (addedSupply != null)
                 {
-                    if (supplier.CreditBalance > 0) // If supplier has paid in advance, try to allocate from it
-                    {
-                        var allocatable = Math.Min(supplier.CreditBalance, supply.TotalPrice);
-                        if (allocatable > 0)
-                        {
-                            var payment = new Payment
-                            {
-                                EntityId = supply.SupplierId,
-                                Amount = allocatable,
-                                PaymentDate = DateTime.Now,
-                                PaymentMethod = "CreditBalance Auto",
-                                Notes = "Auto allocation from Credit Balance",
-                            };
+                    //if (supplier.CreditBalance > 0) // If supplier has paid in advance, try to allocate from it
+                    //{
+                    //    var allocatable = Math.Min(supplier.CreditBalance, supply.TotalPrice);
+                    //    if (allocatable > 0)
+                    //    {
+                    //        var payment = new Payment
+                    //        {
+                    //            EntityId = supply.SupplierId,
+                    //            Amount = allocatable,
+                    //            PaymentDate = DateTime.Now,
+                    //            PaymentMethod = "CreditBalance Auto",
+                    //            Notes = "Auto allocation from Credit Balance",
+                    //        };
 
-                            await unitOfWork.PaymentRepository.AddPayment(payment);
-                            await unitOfWork.SaveChangesAsync();
+                    //        await unitOfWork.PaymentRepository.AddPayment(payment);
+                    //        await unitOfWork.SaveChangesAsync();
 
-                            var allocation = new PaymentAllocation
-                            {
-                                PaymentId = payment.Id,
-                                ReferenceType = OperationType.Supply.ToString(),
-                                ReferenceId = supply.Id,
-                                AllocatedAmount = allocatable
-                            };
+                    //        var allocation = new PaymentAllocation
+                    //        {
+                    //            PaymentId = payment.Id,
+                    //            ReferenceType = OperationType.Supply.ToString(),
+                    //            ReferenceId = supply.Id,
+                    //            AllocatedAmount = allocatable
+                    //        };
 
-                            await unitOfWork.PaymentRepository.AddPaymentAllocation(allocation);
+                    //        await unitOfWork.PaymentRepository.AddPaymentAllocation(allocation);
 
-                            supply.AmountPaid += allocatable;
-                            supply.PaymentStatus = supply.AmountPaid >= supply.TotalPrice ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
-                            //supplier.CreditBalance -= allocatable; // will adjust in AdjustCustomerBalance
-                        }
-                    }
+                    //        supply.AmountPaid += allocatable;
+                    //        supply.PaymentStatus = supply.AmountPaid >= supply.TotalPrice ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
+                    //        //supplier.CreditBalance -= allocatable; // will adjust in AdjustCustomerBalance
+                    //    }
+                    //}
 
                     await adminService.AdjustCustomerBalance(unitOfWork, supply.SupplierId, 0, supply.TotalPrice, OperationType.Supply.ToString());
 
                     if (await unitOfWork.SaveChangesAsync())
                     {
-                        response.Message = "Supply added successfully";
-                        response.Model = autoMapper.Map<SupplyResponseModel>(addedSupply);
+                        var tranaction = await accountTransactionService.RecordSupplyTransaction(supply.Id, supply.SupplierId, supply.TotalPrice, supply.SupplyDate);
+                        if (tranaction.IsError)
+                        {
+                            // Revert Transaction
+                            await DeleteSupply(supply.Id);
+
+                            response.IsError = true;
+                            response.Message = tranaction.Message;
+                        }
+                        else
+                        {
+                            response.Message = "Supply added successfully";
+                            response.Model = autoMapper.Map<SupplyResponseModel>(addedSupply);
+                        }
                     }
                     else
                     {
@@ -128,7 +142,7 @@ namespace Services.ServicesImpl
         public async Task<ResponseModel<SupplyResponseModel>> UpdateSupply(SupplyUpdateModel requestModel)
         {
             var response = new ResponseModel<SupplyResponseModel>();
-            // Check if Bill is created against this Order, if yes then restrict to update Price.
+
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var supply = await unitOfWork.SupplyRepository.GetSupply(requestModel.Id);
@@ -140,7 +154,7 @@ namespace Services.ServicesImpl
                     response.Message = "Supply does not exists.";
 
                 }
-                else if(!supply.IsActive)
+                else if (!supply.IsActive)
                 {
                     response.IsError = true;
                     response.Message = "Supply is inactive and cannot be edited. Contact support if you need to reopen it.";
@@ -148,6 +162,8 @@ namespace Services.ServicesImpl
 
                 if (supply != null)
                 {
+                    decimal oldTotal = supply.TotalPrice;
+                    decimal newTotal = requestModel.Quantity * requestModel.PurchasePrice;
                     //Restrict to change price and quantity if payment made against this supply.
                     if (supply.PaymentStatus != PaymentStatus.Unpaid.ToString() && (supply.Quantity != requestModel.Quantity || supply.PurchasePrice != requestModel.PurchasePrice))
                     {
@@ -160,6 +176,13 @@ namespace Services.ServicesImpl
                     {
                         response.IsError = true;
                         response.Message = "Cannot update Supply TruckNumber, Truck already assigned";
+                        return response;
+                    }
+
+                    if (supply.TruckAssignmentId != null && oldTotal != newTotal)
+                    {
+                        response.IsError = true;
+                        response.Message = "Cannot update Supply Quantity or Price, Supply already assigned to Order.";
                         return response;
                     }
 
@@ -176,8 +199,6 @@ namespace Services.ServicesImpl
                         await unitOfWork.SaveChangesAsync();
                     }
 
-                    decimal oldTotal = supply.TotalPrice;
-
                     supply.Quantity = requestModel.Quantity;
                     supply.PurchasePrice = requestModel.PurchasePrice;
                     supply.TotalPrice = requestModel.Quantity * requestModel.PurchasePrice;
@@ -190,6 +211,24 @@ namespace Services.ServicesImpl
                     if (oldTotal != supply.TotalPrice)
                     {
                         await adminService.AdjustCustomerBalance(unitOfWork, supply.SupplierId, oldTotal, supply.TotalPrice, OperationType.Supply.ToString());
+                        var transaction = await unitOfWork.AccountTransactionRepository.GetTransaction(OperationType.Supply.ToString(), supply.Id);
+                        decimal difference = newTotal - oldTotal;
+                       
+                        var payablesAccount = await unitOfWork.AccountRepository.GetAccountPayable();
+                        
+                        // If difference is positive, it means we are increasing the payable amount
+                        payablesAccount.CurrentBalance -= difference;
+                                           
+                        if (transaction != null)
+                        {
+                            transaction.Amount = supply.TotalPrice;
+                        }
+                        else
+                        {
+                            response.IsError = true;
+                            response.Message = "No transaction found for this supply.";
+                            return response;
+                        }
                     }
 
                     if (await unitOfWork.SaveChangesAsync())
@@ -274,6 +313,27 @@ namespace Services.ServicesImpl
             }
         }
 
+        public async Task<ResponseModel<List<SupplyResponseModel>>> GetUnassignedSupplies(int? truckId)
+        {
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+            {
+                var response = new ResponseModel<List<SupplyResponseModel>>();
+
+                var supplies = await unitOfWork.SupplyRepository.GetUnAssignedSupplies(truckId);
+
+                if (supplies == null || supplies.Count < 1)
+                {
+                    response.Message = "No Supply found";
+                    response.Model = new List<SupplyResponseModel>();
+                }
+                else
+                {
+                    response.Model = autoMapper.Map<List<SupplyResponseModel>>(supplies);
+                }
+                return response;
+            }
+        }
+
         public async Task<ResponseModel<bool>> DeleteSupply(int id)
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
@@ -287,21 +347,38 @@ namespace Services.ServicesImpl
                     response.IsError = true;
                     response.Message = "Supply does not exists";
                 }
+                else if (supply.TruckAssignmentId != null)
+                {
+                    response.IsError = true;
+                    response.Message = "Cannot delete Supply. Supply already assigned to Order.";
+                    return response;
+                }
                 else
                 {
                     if (supply.PaymentStatus == PaymentStatus.Unpaid.ToString())
                     {
                         await adminService.AdjustCustomerBalance(unitOfWork, supply.SupplierId, supply.TotalPrice, 0, OperationType.Supply.ToString());
                         supply.IsActive = false;
-                        if (await unitOfWork.SaveChangesAsync())
+                        var transaction = await unitOfWork.AccountTransactionRepository.GetTransaction(OperationType.Supply.ToString(), supply.Id);
+                        if (transaction != null)
                         {
-                            response.Model = true;
-                            response.Message = "Supply deleted successfully.";
+                            await accountTransactionService.DeleteTransaction(transaction.Id);
+                            if (await unitOfWork.SaveChangesAsync())
+                            {
+                                response.Model = true;
+                                response.Message = "Supply deleted successfully.";
+                            }
+                            else
+                            {
+                                response.IsError = true;
+                                response.Message = "Unable to delete Supply";
+                                response.Model = false;
+                            }
                         }
                         else
                         {
                             response.IsError = true;
-                            response.Message = "Unable to delete Supply";
+                            response.Message = "No transaction found for this supply.";
                             response.Model = false;
                         }
                     }

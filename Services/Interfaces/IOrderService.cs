@@ -12,7 +12,7 @@ namespace Services.Interfaces
 
         Task<ResponseModel<OrderResponseModel>> GetOrder(int id);
 
-        Task<PaginatedResponseModel<OrderResponseModel>> GetOrders(int page, int pageSize, int? fruitId, int? customerId);
+        Task<PaginatedResponseModel<OrderResponseModel>> GetOrders(FilterModel filter);
 
         Task<ResponseModel<bool>> DeleteOrder(int id);
     }

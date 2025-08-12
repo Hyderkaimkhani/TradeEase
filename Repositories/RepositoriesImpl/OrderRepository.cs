@@ -1,6 +1,7 @@
 ﻿using Common;
 using Domain.Entities;
 using Domain.Models;
+using Domain.Models.RequestModel;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Interfaces;
 
@@ -54,15 +55,25 @@ namespace Repositories.RepositoriesImpl
             return orders;
         }
 
-        public async Task<PaginatedResponseModel<Order>> GetOrders(int page, int pageSize, int? fruitId, int? customerId)
+        public async Task<PaginatedResponseModel<Order>> GetOrders(FilterModel filter)
         {
             var query = _context.Set<Order>().AsNoTracking().Where(x => x.IsActive);
 
-            if (fruitId.HasValue)
-                query = query.Where(x => x.FruitId == fruitId.Value);
+            if (filter.EntityId.HasValue)
+                query = query.Where(b => b.CustomerId == filter.EntityId);
 
-            if (customerId.HasValue)
-                query = query.Where(x => x.CustomerId == customerId.Value);
+            if (filter.FromDate.HasValue)
+                query = query.Where(b => b.OrderDate >= filter.FromDate.Value);
+
+            if (filter.ToDate.HasValue)
+                query = query.Where(b => b.OrderDate <= filter.ToDate.Value);
+
+            if (!string.IsNullOrEmpty(filter.ReferenceNumber))
+                query = query.Where(b => b.OrderNumber == filter.ReferenceNumber);
+
+            if (filter.FruitId.HasValue)
+                query = query.Where(x => x.FruitId == filter.FruitId.Value);
+
 
             var totalCount = await query.CountAsync();
 
@@ -71,8 +82,8 @@ namespace Repositories.RepositoriesImpl
                 .Include(s => s.Truck)
                 .Include(s => s.Customer)
                 .OrderByDescending(s => s.OrderDate)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
                 .ToListAsync();
 
             return new PaginatedResponseModel<Order>

@@ -20,6 +20,7 @@ namespace Repositories.Interfaces
         Task<Truck> AddTruck(Truck truckEntity);
 
         Task<TruckAssignment> AddTruckAssignment(TruckAssignment entity);
+        Task<TruckAssignment> GetTruckAssignment(int id);
 
         Task<Fruit?> GetFruit(int id);
         Task<Fruit> AddFruit(Fruit fruitntity);

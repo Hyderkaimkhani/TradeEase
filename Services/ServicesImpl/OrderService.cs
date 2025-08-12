@@ -4,7 +4,6 @@ using Domain.Entities;
 using Domain.Models;
 using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
-using Microsoft.Extensions.Configuration;
 using Repositories.Interfaces;
 using Services.Interfaces;
 
@@ -14,21 +13,21 @@ namespace Services.ServicesImpl
     {
         private readonly IMapper autoMapper;
         private readonly IUnitOfWorkFactory unitOfWorkFactory;
-        private readonly ITokenService tokenService;
         private readonly IAdminService adminService;
+        private readonly IAccountTransactionService accountTransactionService;
 
         public OrderService(IUnitOfWorkFactory unitOfWorkFactory,
               IMapper autoMapper,
-              IConfiguration configuration,
               ITokenService tokenService,
-              IAdminService adminService
+              IAdminService adminService,
+              IAccountTransactionService accountTransactionService
 
             )
         {
             this.autoMapper = autoMapper;
             this.unitOfWorkFactory = unitOfWorkFactory;
-            this.tokenService = tokenService;
             this.adminService = adminService;
+            this.accountTransactionService = accountTransactionService;
         }
 
         public async Task<ResponseModel<OrderResponseModel>> AddOrder(OrderAddModel requestModel)
@@ -111,45 +110,54 @@ namespace Services.ServicesImpl
                 var addedOrder = await unitOfWork.OrderRepository.AddOrder(order);
                 if (addedOrder != null)
                 {
-                    if (customer.CreditBalance < 0) // If customer has paid in advance, try to allocate from it
-                    {
-                        var allocatable = Math.Min(Math.Abs(customer.CreditBalance), order.TotalSellingPrice);
+                    //if (customer.CreditBalance < 0) // If customer has paid in advance, try to allocate from it
+                    //{
+                    //    var allocatable = Math.Min(Math.Abs(customer.CreditBalance), order.TotalSellingPrice);
 
-                        if (allocatable > 0)
-                        {   
-                            // AccountTransaction
-                            var payment = new Payment
-                            {
-                                EntityId = order.CustomerId,
-                                Amount = allocatable,
-                                PaymentDate = DateTime.Now,
-                                PaymentMethod = "CreditBalance Auto",
-                                Notes = "Auto allocation from advance",
-                            };
+                    //    if (allocatable > 0)
+                    //    {   
+                    //        // AccountTransaction
+                    //        var payment = new Payment
+                    //        {
+                    //            EntityId = order.CustomerId,
+                    //            Amount = allocatable,
+                    //            PaymentDate = DateTime.UtcNow,
+                    //            PaymentMethod = "CreditBalance Auto",
+                    //            Notes = "Auto allocation from advance",
+                    //        };
 
-                            await unitOfWork.PaymentRepository.AddPayment(payment);
-                            await unitOfWork.SaveChangesAsync();
+                    //        await unitOfWork.PaymentRepository.AddPayment(payment);
+                    //        await unitOfWork.SaveChangesAsync();
 
-                            var allocation = new PaymentAllocation
-                            {
-                                PaymentId = payment.Id,
-                                ReferenceType = OperationType.Order.ToString(),
-                                ReferenceId = order.Id,
-                                AllocatedAmount = allocatable
-                            };
+                    //        var allocation = new PaymentAllocation
+                    //        {
+                    //            PaymentId = payment.Id,
+                    //            ReferenceType = OperationType.Order.ToString(),
+                    //            ReferenceId = order.Id,
+                    //            AllocatedAmount = allocatable
+                    //        };
 
-                            await unitOfWork.PaymentRepository.AddPaymentAllocation(allocation);
+                    //        await unitOfWork.PaymentRepository.AddPaymentAllocation(allocation);
 
-                            order.AmountReceived += allocatable;
-                            order.PaymentStatus = order.AmountReceived >= order.TotalSellingPrice ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
-                            //customer.CreditBalance += allocatable;  // Move towards zero
-                        }
+                    //        order.AmountReceived += allocatable;
+                    //        order.PaymentStatus = order.AmountReceived >= order.TotalSellingPrice ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
+                    //        //customer.CreditBalance += allocatable;  // Move towards zero
+                    //    }
 
-                    }
+                    //}
                     await adminService.AdjustCustomerBalance(unitOfWork, order.CustomerId, 0, order.TotalSellingPrice, OperationType.Order.ToString());
 
                     if (await unitOfWork.SaveChangesAsync())
                     {
+                        var tranaction = await accountTransactionService.RecordOrderTransaction(order.Id, order.CustomerId, order.TotalSellingPrice, order.OrderDate);
+                        if (tranaction.IsError)
+                        {
+                            // Revert Transaction
+                            await DeleteOrder(order.Id);
+
+                            response.IsError = true;
+                            response.Message = tranaction.Message;
+                        }
                         response.Message = "Order added successfuly";
                         response.Model = autoMapper.Map<OrderResponseModel>(addedOrder);
                     }
@@ -173,7 +181,6 @@ namespace Services.ServicesImpl
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
-                // Check if Bill is created against this Order, if yes then restrict to update Price.
                 var response = new ResponseModel<OrderResponseModel>();
 
                 var order = await unitOfWork.OrderRepository.GetOrder(requestModel.Id);
@@ -183,10 +190,15 @@ namespace Services.ServicesImpl
                     response.IsError = true;
                     response.Message = "No Order found";
                 }
-                else if(!order.IsActive)
+                else if (!order.IsActive)
                 {
                     response.IsError = true;
                     response.Message = "Order is inactive and cannot be edited. Contact support if you need to reopen it.";
+                }
+                else if (order.Status == OrderStatus.Delivered.ToString())
+                {
+                    response.IsError = true;
+                    response.Message = "Cannot update delivered order. Contact support if you need to reopen it.";
                 }
                 else
                 {
@@ -219,12 +231,29 @@ namespace Services.ServicesImpl
                     order.Status = requestModel.Status;
                     //order.OrderDate = requestModel.OrderDate;
                     order.Deliverydate = requestModel.DeliveryDate;
-                    decimal difference = oldTotal - order.TotalSellingPrice;  // 10-8=2, 8-10 = -2
+                    decimal difference = order.TotalSellingPrice - oldTotal;   // 10-8=2, 8-10 = -2
 
                     if (oldTotal != order.TotalSellingPrice)
                     {
                         // Adjust Customer Account
                         await adminService.AdjustCustomerBalance(unitOfWork, order.CustomerId, oldTotal, order.TotalSellingPrice, OperationType.Order.ToString());
+
+                        // Adjust Receivable Account
+                        var receivableAccount = await unitOfWork.AccountRepository.GetAccountReceivable();
+
+                        receivableAccount!.CurrentBalance += difference;
+
+                        var transaction = await unitOfWork.AccountTransactionRepository.GetTransaction(OperationType.Order.ToString(), requestModel.Id);
+                        if (transaction != null)
+                        {
+                            transaction.Amount = order.TotalSellingPrice;
+                        }
+                        else
+                        {
+                            response.IsError = true;
+                            response.Message = "No transaction found for this order.";
+                            return response;
+                        }
                     }
 
                     if (await unitOfWork.SaveChangesAsync())
@@ -269,13 +298,13 @@ namespace Services.ServicesImpl
             }
         }
 
-        public async Task<PaginatedResponseModel<OrderResponseModel>> GetOrders(int page, int pageSize, int? fruitId, int? customerId)
+        public async Task<PaginatedResponseModel<OrderResponseModel>> GetOrders(FilterModel filter)
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new PaginatedResponseModel<OrderResponseModel>();
 
-                var orders = await unitOfWork.OrderRepository.GetOrders(page, pageSize, fruitId, customerId);
+                var orders = await unitOfWork.OrderRepository.GetOrders(filter);
 
                 if (orders.Model == null || orders.Model.Count < 1)
                 {
@@ -299,7 +328,7 @@ namespace Services.ServicesImpl
                 var order = await unitOfWork.OrderRepository.GetOrder(orderId);
 
                 // Optional: Check if payment is allocated, prevent delete if necessary
-                
+
                 //if (hasPayments)
                 //    throw new InvalidOperationException("Cannot delete order with allocated payments.");
 
@@ -308,32 +337,60 @@ namespace Services.ServicesImpl
                     response.IsError = true;
                     response.Message = "Order does not exists";
                 }
+                else if (order.Status == OrderStatus.Delivered.ToString())
+                {
+                    response.IsError = true;
+                    response.Message = "Cannot delete delivered order. Contact support if you need to reopen it.";
+                    return response;
+                }
+                else if (order.PaymentStatus != PaymentStatus.Unpaid.ToString())
+                {
+                    response.IsError = true;
+                    response.Message = "Cannot delete order with payments allocated. Contact support if you need to reopen it.";
+                    return response;
+                }
                 else
                 {
-                    var paymentAllocations = await unitOfWork.PaymentRepository.GetPaymentAllocation(OperationType.Order.ToString(), orderId);
+                    order.IsActive = false;
 
-                    foreach (var alloc in paymentAllocations)
-                    {
-                        alloc.IsActive = false;
-                    }
+                    var supply = await unitOfWork.SupplyRepository.GetSupplyByTruckAssignmentId((int)order.TruckAssignmentId);
+                    if (supply != null)
+                        supply.TruckAssignmentId = null; // Unassign the supply from truck assignment
+
+                    var truckAssignment = await unitOfWork.AdminRepository.GetTruckAssignment((int)order.TruckAssignmentId);
+                    if (truckAssignment != null)
+                        truckAssignment.IsActive = false;
 
                     await adminService.AdjustCustomerBalance(unitOfWork, order.CustomerId, order.TotalSellingPrice, 0, OperationType.Order.ToString());
-                    order.IsActive = false;
-                    if (await unitOfWork.SaveChangesAsync())
+                    
+                    var transaction = await unitOfWork.AccountTransactionRepository.GetTransaction(OperationType.Order.ToString(), orderId);
+
+                    if (transaction != null)
                     {
-                        response.Model = true;
-                        response.Message = "Order deleted succesfully.";
+                        await accountTransactionService.DeleteTransaction(transaction.Id);
+                        if (await unitOfWork.SaveChangesAsync())
+                        {
+                            response.Model = true;
+                            response.Message = "Order deleted succesfully.";
+                        }
+                        else
+                        {
+                            response.IsError = true;
+                            response.Message = "Unable to delete Order";
+                            response.Model = false;
+                        }
                     }
                     else
                     {
                         response.IsError = true;
-                        response.Message = "Unable to delete Order";
-                        response.Model = false;
+                        response.Message = "No transaction found for this order.";
+                        return response;
                     }
                 }
                 return response;
             }
         }
+
 
         public async Task UpdateOrderPaymentStatusAsync(int orderId)
         {

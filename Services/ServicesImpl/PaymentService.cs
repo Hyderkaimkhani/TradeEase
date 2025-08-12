@@ -136,7 +136,7 @@ namespace Services.ServicesImpl
             var response = new ResponseModel<PaymentResponseModel>();
             using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
 
-            var accountTransaction = await unitOfWork.AccountTransactionRepository.GetAccountTransaction(requestModel.Id);
+            var accountTransaction = await unitOfWork.AccountTransactionRepository.GetTransaction(requestModel.Id);
             var payment = await unitOfWork.PaymentRepository.GetPayment(requestModel.Id);
             if (payment == null || !payment.IsActive)
             {
@@ -368,7 +368,7 @@ namespace Services.ServicesImpl
             using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
 
             var payment = await unitOfWork.PaymentRepository.GetPayment(paymentId);
-            var accountTransaction = await unitOfWork.AccountTransactionRepository.GetAccountTransaction(paymentId);
+            var accountTransaction = await unitOfWork.AccountTransactionRepository.GetTransaction(paymentId);
             if (payment == null || !payment.IsActive)
             {
                 response.IsError = true;

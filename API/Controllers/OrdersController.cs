@@ -47,11 +47,9 @@ namespace API.Controllers
         }
 
         [HttpGet("")]
-        public async Task<IActionResult> GetOrders([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] int? fruitId = null, [FromQuery] int? customerId = null,
-                                                    [FromQuery] string? orderNumber = null, [FromQuery] DateTime? fromDate = null, [FromQuery] DateTime? toDate = null,
-                                                    [FromQuery] string? status = null, [FromQuery] string? paymentStatus = null)
+        public async Task<IActionResult> GetOrders([FromQuery] FilterModel filter)
         {
-            var result = await orderService.GetOrders(page, pageSize, fruitId, customerId);
+            var result = await orderService.GetOrders(filter);
             return Ok(result);
         }
 

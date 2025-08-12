@@ -50,11 +50,15 @@ namespace Repositories.RepositoriesImpl
             return supplies;
         }
 
-        public async Task<List<Supply>> GetUnAssignedSupplies(int truckId)
+        public async Task<List<Supply>> GetUnAssignedSupplies(int? truckId)
         {
-            var supplies = await _context.Set<Supply>()
-                .Where(x => x.TruckId == truckId && x.IsActive == true && x.TruckAssignmentId == null)
-                .OrderByDescending(s => s.SupplyDate).ToListAsync();
+            var query = _context.Set<Supply>()
+               .Where(x => x.IsActive == true && x.TruckAssignmentId == null);
+
+            if (truckId.HasValue)
+                query = query.Where(x=>x.TruckId == truckId);
+            
+            var supplies = await query.OrderByDescending(s => s.SupplyDate).ToListAsync();
 
             return supplies;
         }
@@ -131,6 +135,12 @@ namespace Repositories.RepositoriesImpl
                 //&&
                 //                !_context.Set<BillDetail>().Any(bd =>bd.SupplyId == supply.Id))
                 .ToListAsync();
+        }
+
+        public async Task<Supply?> GetSupplyByTruckAssignmentId(int id)
+        {
+            var supply = await _context.Set<Supply>().FirstOrDefaultAsync(x => x.TruckAssignmentId == id);
+            return supply;
         }
     }
 }

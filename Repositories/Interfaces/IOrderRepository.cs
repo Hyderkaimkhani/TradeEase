@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Domain.Models;
+using Domain.Models.RequestModel;
 
 namespace Repositories.Interfaces
 {
@@ -13,7 +14,7 @@ namespace Repositories.Interfaces
 
         Task<List<Order>> GetUnpaidOrders(int? customerId);
 
-        Task<PaginatedResponseModel<Order>> GetOrders(int page, int pageSize, int? fruitId, int? customerId);
+        Task<PaginatedResponseModel<Order>> GetOrders(FilterModel filter);
 
         Task<List<Order>> GetUnbilledOrders(int customerId, DateTime from, DateTime to);
 

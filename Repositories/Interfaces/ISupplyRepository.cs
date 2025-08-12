@@ -13,7 +13,7 @@ namespace Repositories.Interfaces
 
         Task<List<Supply>> GetSupplies(bool isActive);
 
-        Task<List<Supply>> GetUnAssignedSupplies(int truckId);
+        Task<List<Supply>> GetUnAssignedSupplies(int? truckId);
 
         Task<PaginatedResponseModel<Supply>> GetSupplies(int page, int pageSize, int? fruitId, int? supplierId);
 
@@ -22,6 +22,9 @@ namespace Repositories.Interfaces
         Task<List<Supply>> GetSuppliesBySupplier(int supplierId, string? paymentStatus = null);
 
         Task<List<Supply>> GetUnbilledSupplies(int customerId, DateTime from, DateTime to);
+
+        Task<Supply?> GetSupplyByTruckAssignmentId(int id);
+
 
     }
 }

@@ -47,12 +47,12 @@ namespace Repositories.RepositoriesImpl
             return await _context.Account
                 .FirstOrDefaultAsync(b => b.Type == "Receivable");
         }
+
         public async Task<Account?> GetAccountPayable()
         {
             return await _context.Account
                 .FirstOrDefaultAsync(b => b.Type == "Payable");
         }
-
 
         public async Task<PaginatedResponseModel<Account>> GetAccounts(FilterModel filter)
         {
