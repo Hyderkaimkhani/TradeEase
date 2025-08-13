@@ -250,27 +250,26 @@ namespace Services.ServicesImpl
             return response;
         }
 
-        public async Task<ResponseModel<bool>> RecordPaymentTransaction(int paymentId, int entityId, decimal amount, string paymentMethod, int accountId, string transactionDirection, string party)
+        public async Task<ResponseModel<int>> RecordPaymentTransaction(PaymentAddModel paymentModel)
         {
-            var response = new ResponseModel<bool>();
+            var response = new ResponseModel<int>();
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 // Get 
-                var account = await unitOfWork.AccountRepository.GetAccount(accountId);
+                var account = await unitOfWork.AccountRepository.GetAccount(paymentModel.AccountId);
                 if (account != null)
                 {
                     var transaction = new AccountTransaction
                     {
-                        AccountId = accountId,
-                        TransactionType = "Payment",
-                        TransactionDirection = transactionDirection, // Money going OUT
-                        Amount = amount,
-                        TransactionDate = DateTime.Now,
-                        PaymentMethod = paymentMethod,
-                        EntityId = entityId,
-                        ReferenceType = "Payment",
-                        ReferenceId = paymentId,
-                        Party = party
+                        AccountId = paymentModel.AccountId,
+                        TransactionType = TransactionType.Payment.ToString(),
+                        TransactionDirection = paymentModel.TransactionDirection,
+                        Amount = paymentModel.Amount,
+                        TransactionDate = paymentModel.PaymentDate,
+                        PaymentMethod = paymentModel.PaymentMethod,
+                        EntityId = paymentModel.EntityId,
+                        ReferenceType = ReferenceType.Payment.ToString(),
+                        Notes = paymentModel.Notes
                     };
 
                     var addedTransaction = await unitOfWork.AccountTransactionRepository.AddTransaction(transaction);
@@ -278,22 +277,16 @@ namespace Services.ServicesImpl
                     UpdateAccountBalance(account, transaction);
                     if (await unitOfWork.SaveChangesAsync())
                     {
-                        response.Model = true;
+                        response.Model = addedTransaction.Id;
                         response.Message = "Payment transaction recorded successfully";
                     }
                     else
                     {
                         response.IsError = true;
                         response.Message = "Failed to record Payment transaction";
-                        response.Model = false;
+                        response.Model = 0;
                     }
 
-                }
-                else
-                {
-                    response.IsError = true;
-                    response.Message = "Please create Payable account";
-                    response.Model = false;
                 }
             }
             return response;

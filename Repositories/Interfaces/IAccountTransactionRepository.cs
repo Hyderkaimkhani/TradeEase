@@ -14,6 +14,7 @@ namespace Repositories.Interfaces
         Task<PaginatedResponseModel<AccountTransaction>> GetTransactions(FilterModel filterModel);
         Task<AccountStatementResponseModel> GetAccountStatement(AccountStatementRequestModel request);
         Task<decimal> GetAccountBalanceAsOfDate(int accountId, DateTime asOfDate);
+        Task<List<UnallocatedTransaction>> GetUnallocatedTransactions(int entityId, int accountId, string transactionDirection, string referenceType);
 
     }
 }

@@ -8,6 +8,8 @@ using Microsoft.Extensions.Configuration;
 using Org.BouncyCastle.Asn1.X509;
 using Repositories.Interfaces;
 using Services.Interfaces;
+using System.ComponentModel.Design;
+using System.Resources;
 using System.Security.Principal;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
@@ -71,38 +73,34 @@ namespace Services.ServicesImpl
                 var addedSupply = await unitOfWork.SupplyRepository.AddSupply(supply);
                 if (addedSupply != null)
                 {
-                    //if (supplier.CreditBalance > 0) // If supplier has paid in advance, try to allocate from it
-                    //{
-                    //    var allocatable = Math.Min(supplier.CreditBalance, supply.TotalPrice);
-                    //    if (allocatable > 0)
-                    //    {
-                    //        var payment = new Payment
-                    //        {
-                    //            EntityId = supply.SupplierId,
-                    //            Amount = allocatable,
-                    //            PaymentDate = DateTime.Now,
-                    //            PaymentMethod = "CreditBalance Auto",
-                    //            Notes = "Auto allocation from Credit Balance",
-                    //        };
+                    if (supplier.CreditBalance > 0) // If supplier has paid in advance, try to allocate from it
+                    {
+                        decimal remainingSupplyAmount = supply.TotalPrice;
+                        var payableAccount = await unitOfWork.AccountRepository.GetAccountPayable();
 
-                    //        await unitOfWork.PaymentRepository.AddPayment(payment);
-                    //        await unitOfWork.SaveChangesAsync();
+                        var unallocatedPayments = await unitOfWork.AccountTransactionRepository.GetUnallocatedTransactions(requestModel.SupplierId, payableAccount!.Id, TransactionDirection.Debit.ToString(), ReferenceType.Payment.ToString());
 
-                    //        var allocation = new PaymentAllocation
-                    //        {
-                    //            PaymentId = payment.Id,
-                    //            ReferenceType = OperationType.Supply.ToString(),
-                    //            ReferenceId = supply.Id,
-                    //            AllocatedAmount = allocatable
-                    //        };
+                        foreach (var payment in unallocatedPayments)
+                        {
+                            if (remainingSupplyAmount <= 0) break;
 
-                    //        await unitOfWork.PaymentRepository.AddPaymentAllocation(allocation);
+                            decimal available = payment.RemainingAmount;
+                            decimal toAllocate = Math.Min(available, remainingSupplyAmount);
 
-                    //        supply.AmountPaid += allocatable;
-                    //        supply.PaymentStatus = supply.AmountPaid >= supply.TotalPrice ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
-                    //        //supplier.CreditBalance -= allocatable; // will adjust in AdjustCustomerBalance
-                    //    }
-                    //}
+                            await unitOfWork.PaymentRepository.AddPaymentAllocation(new PaymentAllocation
+                            {
+                                TransactionId = payment.TransactionId,
+                                ReferenceType = OperationType.Order.ToString(),
+                                ReferenceId = supply.Id,
+                                AllocatedAmount = toAllocate
+                            });
+
+                            remainingSupplyAmount -= toAllocate;
+                            // check if amount replicated
+                            supply.AmountPaid += toAllocate;
+                            supply.PaymentStatus = supply.AmountPaid >= supply.TotalPrice ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
+                        }
+                    }
 
                     await adminService.AdjustCustomerBalance(unitOfWork, supply.SupplierId, 0, supply.TotalPrice, OperationType.Supply.ToString());
 
@@ -213,12 +211,12 @@ namespace Services.ServicesImpl
                         await adminService.AdjustCustomerBalance(unitOfWork, supply.SupplierId, oldTotal, supply.TotalPrice, OperationType.Supply.ToString());
                         var transaction = await unitOfWork.AccountTransactionRepository.GetTransaction(OperationType.Supply.ToString(), supply.Id);
                         decimal difference = newTotal - oldTotal;
-                       
+
                         var payablesAccount = await unitOfWork.AccountRepository.GetAccountPayable();
-                        
+
                         // If difference is positive, it means we are increasing the payable amount
                         payablesAccount.CurrentBalance -= difference;
-                                           
+
                         if (transaction != null)
                         {
                             transaction.Amount = supply.TotalPrice;

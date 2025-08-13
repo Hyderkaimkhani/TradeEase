@@ -16,7 +16,7 @@ namespace Services.Interfaces
         // Service methods to be called from other services
         Task<ResponseModel<bool>> RecordOrderTransaction(int orderId, int customerId, decimal amount, DateTime transactionDate);
         Task<ResponseModel<bool>> RecordSupplyTransaction(int supplyId, int supplierId, decimal amount, DateTime transactionDate);
-        Task<ResponseModel<bool>> RecordPaymentTransaction(int paymentId, int entityId, decimal amount, string paymentMethod, int accountId, string transactionDirection, string party);
+        Task<ResponseModel<int>> RecordPaymentTransaction(PaymentAddModel paymentModel);
         Task<ResponseModel<bool>> RecordExpenseTransaction(string category, string party, decimal amount, int accountId);
         Task<ResponseModel<bool>> RecordIncomeTransaction(string category, string party, decimal amount, int accountId);
 

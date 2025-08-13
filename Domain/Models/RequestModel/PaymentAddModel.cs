@@ -1,16 +1,23 @@
-﻿using Domain.Entities;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Domain.Models.RequestModel
 {
     public class PaymentAddModel
     {
+        [RegularExpression("^(Debit|Credit)$", ErrorMessage = "Invalid TransactionDirection")]
+        [JsonIgnore]
+        public string TransactionDirection { get; set; } = string.Empty; // "Debit=>Incoming" or "Credit=>Outgoing"  
+
         [Required]
-        [RegularExpression("^(Credit|Debit)$", ErrorMessage = "Invalid TransactionDirection")]
-        public string TransactionDirection { get; set; } = string.Empty; // "Credit=>Incoming" or "Debit=>Outgoing"  
+        [RegularExpression("^(Received|Paid)$", ErrorMessage = "Invalid TransactionType")]
+        public string TransactionType { get; set; } = string.Empty;
 
         [Required]
         public int EntityId { get; set; }
+
+        [Required]
+        public int AccountId { get; set; }
 
         [Required]
         public decimal Amount { get; set; }

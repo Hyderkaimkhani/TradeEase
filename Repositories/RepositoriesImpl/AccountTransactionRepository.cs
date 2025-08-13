@@ -25,7 +25,7 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<decimal> GetAccountBalanceAsOfDate(int accountId, DateTime asOfDate)
         {
-            var balance =  await context.AccountTransaction.Where(t => t.AccountId == accountId &&
+            var balance = await context.AccountTransaction.Where(t => t.AccountId == accountId &&
                 t.IsActive &&
                 t.TransactionDate <= asOfDate)
                 .SumAsync(t => t.TransactionDirection == "Debit" ? t.Amount : -t.Amount);
@@ -41,7 +41,7 @@ namespace Repositories.RepositoriesImpl
         public async Task<AccountTransaction?> GetTransaction(int id)
         {
             var result = await context.AccountTransaction.FirstOrDefaultAsync(b => b.Id == id);
-           
+
             return result;
         }
 
@@ -65,10 +65,10 @@ namespace Repositories.RepositoriesImpl
         {
             var query = context.AccountTransaction.AsNoTracking();
 
-            if (filter.EntityId !=0)
-                query = query.Where(a=>a.EntityId == filter.EntityId );
+            if (filter.EntityId != 0)
+                query = query.Where(a => a.EntityId == filter.EntityId);
 
-            if (filter.AccountId!=0)
+            if (filter.AccountId != 0)
                 query = query.Where(a => a.AccountId == filter.AccountId);
 
             if (filter.FromDate.HasValue)
@@ -79,7 +79,7 @@ namespace Repositories.RepositoriesImpl
 
             var totalCount = await query.CountAsync();
 
-            var accountTransactions = await query.Include(a=>a.Account).Include(a => a.ToAccount).Include(a => a.Customer)
+            var accountTransactions = await query.Include(a => a.Account).Include(a => a.ToAccount).Include(a => a.Customer)
                 .OrderByDescending(b => b.TransactionDate)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
@@ -91,6 +91,38 @@ namespace Repositories.RepositoriesImpl
                 TotalCount = totalCount
             };
         }
+
+        public async Task<List<UnallocatedTransaction>> GetUnallocatedTransactions(int entityId, int accountId, string transactionDirection, string referenceType)
+        {
+            var query =
+                from at in context.AccountTransaction.AsNoTracking()
+                where at.AccountId == accountId
+                      && at.EntityId == entityId
+                      && at.TransactionDirection == transactionDirection
+                      && at.ReferenceType == referenceType
+                join pa in context.PaymentAllocation
+                    on at.Id equals pa.TransactionId into paGroup
+                select new
+                {
+                    Transaction = at,
+                    AllocatedSum = paGroup.Sum(p => (decimal?)p.AllocatedAmount) ?? 0
+                };
+
+            var result = await query
+                .Where(x => (x.Transaction.Amount - x.AllocatedSum) > 0) // HAVING
+                .OrderBy(x => x.Transaction.TransactionDate) // FIFO
+                .Select(x => new UnallocatedTransaction
+                {
+                    TransactionId = x.Transaction.Id,
+                    Amount = x.Transaction.Amount,
+                    TransactionDate = x.Transaction.TransactionDate,
+                    RemainingAmount = x.Transaction.Amount - x.AllocatedSum
+                })
+                .ToListAsync();
+
+            return result;
+        }
+
 
         //public async Task<AccountStatementResponseModel> GetAccountStatementAsync(AccountStatementRequestModel request, int companyId)
         //{

@@ -6,6 +6,7 @@ using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
 using Repositories.Interfaces;
 using Services.Interfaces;
+using System.ComponentModel.Design;
 
 namespace Services.ServicesImpl
 {
@@ -110,41 +111,34 @@ namespace Services.ServicesImpl
                 var addedOrder = await unitOfWork.OrderRepository.AddOrder(order);
                 if (addedOrder != null)
                 {
-                    //if (customer.CreditBalance < 0) // If customer has paid in advance, try to allocate from it
-                    //{
-                    //    var allocatable = Math.Min(Math.Abs(customer.CreditBalance), order.TotalSellingPrice);
+                    if (customer.CreditBalance < 0) // If customer has paid in advance, try to allocate from it
+                    {
+                        decimal remainingOrderAmount = order.TotalSellingPrice;
+                        var receivableAccount= await unitOfWork.AccountRepository.GetAccountReceivable();
 
-                    //    if (allocatable > 0)
-                    //    {   
-                    //        // AccountTransaction
-                    //        var payment = new Payment
-                    //        {
-                    //            EntityId = order.CustomerId,
-                    //            Amount = allocatable,
-                    //            PaymentDate = DateTime.UtcNow,
-                    //            PaymentMethod = "CreditBalance Auto",
-                    //            Notes = "Auto allocation from advance",
-                    //        };
+                        var unallocatedPayments = await unitOfWork.AccountTransactionRepository.GetUnallocatedTransactions(requestModel.CustomerId, receivableAccount!.Id,TransactionDirection.Credit.ToString(),ReferenceType.Payment.ToString());
 
-                    //        await unitOfWork.PaymentRepository.AddPayment(payment);
-                    //        await unitOfWork.SaveChangesAsync();
+                        foreach (var payment in unallocatedPayments)
+                        {
+                            if (remainingOrderAmount <= 0) break;
 
-                    //        var allocation = new PaymentAllocation
-                    //        {
-                    //            PaymentId = payment.Id,
-                    //            ReferenceType = OperationType.Order.ToString(),
-                    //            ReferenceId = order.Id,
-                    //            AllocatedAmount = allocatable
-                    //        };
+                            decimal available = payment.RemainingAmount;
+                            decimal toAllocate = Math.Min(available, remainingOrderAmount);
 
-                    //        await unitOfWork.PaymentRepository.AddPaymentAllocation(allocation);
+                            await unitOfWork.PaymentRepository.AddPaymentAllocation(new PaymentAllocation
+                            {
+                                TransactionId = payment.TransactionId,
+                                ReferenceType = OperationType.Order.ToString(),
+                                ReferenceId = order.Id,
+                                AllocatedAmount = toAllocate
+                            });
 
-                    //        order.AmountReceived += allocatable;
-                    //        order.PaymentStatus = order.AmountReceived >= order.TotalSellingPrice ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
-                    //        //customer.CreditBalance += allocatable;  // Move towards zero
-                    //    }
+                            remainingOrderAmount -= toAllocate;
 
-                    //}
+                            order.AmountReceived += toAllocate;
+                            order.PaymentStatus = order.AmountReceived >= order.TotalSellingPrice ? PaymentStatus.Paid.ToString() : PaymentStatus.Partial.ToString();
+                        }
+                    }
                     await adminService.AdjustCustomerBalance(unitOfWork, order.CustomerId, 0, order.TotalSellingPrice, OperationType.Order.ToString());
 
                     if (await unitOfWork.SaveChangesAsync())

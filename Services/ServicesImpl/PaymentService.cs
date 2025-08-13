@@ -4,6 +4,7 @@ using Domain.Entities;
 using Domain.Models;
 using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Repositories.Interfaces;
 using Services.Interfaces;
@@ -15,15 +16,17 @@ namespace Services.ServicesImpl
         private readonly IMapper autoMapper;
         private readonly IUnitOfWorkFactory unitOfWorkFactory;
         private readonly IBillService billService;
+        private readonly IAccountTransactionService accountTransactionService;
 
         public PaymentService(IUnitOfWorkFactory unitOfWorkFactory,
               IMapper autoMapper,
-              IBillService billService
+              IBillService billService, IAccountTransactionService accountTransactionService
             )
         {
             this.autoMapper = autoMapper;
             this.unitOfWorkFactory = unitOfWorkFactory;
             this.billService = billService;
+            this.accountTransactionService = accountTransactionService;
         }
 
         public async Task<ResponseModel<PaymentResponseModel>> AddPayment(PaymentAddModel requestModel)
@@ -39,40 +42,43 @@ namespace Services.ServicesImpl
                     return response;
                 }
 
-                // AccountTransaction
-                var payment = new Payment
+                decimal remainingAmount = requestModel.Amount; //10000
+                if (requestModel.TransactionType == "Received")
                 {
-                    EntityId = requestModel.EntityId,
-                    Amount = requestModel.Amount,
-                    PaymentDate = requestModel.PaymentDate,
-                    PaymentMethod = requestModel.PaymentMethod,
-                    Notes = requestModel.Notes,
-                };
+                    requestModel.TransactionDirection = TransactionDirection.Debit.ToString();
+                    // Record for Internal Account Transaction
+                    await accountTransactionService.RecordPaymentTransaction(requestModel);
 
-                payment = await unitOfWork.PaymentRepository.AddPayment(payment);
+                    // Record for Account Receivables
+                    var receivableAccount = await unitOfWork.AccountRepository.GetAccountReceivable();
+                    requestModel.TransactionDirection = TransactionDirection.Credit.ToString();
+                    requestModel.AccountId = receivableAccount!.Id; // Set AccountId to Receivables account
+                    var transactionReponse = await accountTransactionService.RecordPaymentTransaction(requestModel);
 
-                await unitOfWork.SaveChangesAsync();
-                decimal remainingAmount = requestModel.Amount;
-
-                if (requestModel.TransactionDirection == TransactionDirection.Credit.ToString())
-                {
                     if (customer.CreditBalance < 0)
                     {
-                        remainingAmount -= customer.CreditBalance; // If customer has credit balance, add it to remaining amount to allocate
+                        // You owe them (advance payment given) — so payment increases allocatable amount
+                        remainingAmount += Math.Abs(customer.CreditBalance);
+
                     }
-                    var orders = await unitOfWork.OrderRepository.GetUnpaidOrders(requestModel.EntityId);
-
-                    foreach (var order in orders)
+                    else if (customer.CreditBalance > 0)
                     {
-                        var remainingDue = order.TotalSellingPrice - order.AmountReceived;
+                        // They owe you already — so payment should first settle that debt
+                        remainingAmount -= customer.CreditBalance;
 
+                    }
+                    var unpaidOrders = await unitOfWork.OrderRepository.GetUnpaidOrders(requestModel.EntityId);
+
+                    foreach (var order in unpaidOrders)
+                    {
                         if (remainingAmount <= 0) break;
 
+                        var remainingDue = order.TotalSellingPrice - order.AmountReceived;
                         var toAllocate = Math.Min(remainingAmount, remainingDue);
 
                         var paymentAllocation = new PaymentAllocation
                         {
-                            PaymentId = payment.Id,
+                            TransactionId = transactionReponse.Model,
                             ReferenceType = OperationType.Order.ToString(),
                             ReferenceId = order.Id,
                             AllocatedAmount = toAllocate,
@@ -87,12 +93,28 @@ namespace Services.ServicesImpl
 
                     customer.CreditBalance -= requestModel.Amount;
                 }
-                else if (requestModel.TransactionDirection == TransactionDirection.Debit.ToString())
+                else if (requestModel.TransactionType == "Paid")
                 {
+                    requestModel.TransactionDirection = TransactionDirection.Credit.ToString();
+                    // Record for Internal Account Transaction
+                    await accountTransactionService.RecordPaymentTransaction(requestModel);
+
+                    // Record for Account Payable
+                    var payableAccount = await unitOfWork.AccountRepository.GetAccountPayable();
+                    requestModel.TransactionDirection = TransactionDirection.Debit.ToString();
+                    requestModel.AccountId = payableAccount!.Id; // Set AccountId to Payable account
+                    var transactionReponse = await accountTransactionService.RecordPaymentTransaction(requestModel);
+
                     if (customer.CreditBalance > 0)
                     {
                         remainingAmount += customer.CreditBalance; // If customer has credit balance, add it to remaining amount to allocate
                     }
+                    else if (customer.CreditBalance < 0)
+                    {
+                        // They owe you — reduce the amount available to allocate
+                        remainingAmount -= Math.Abs(customer.CreditBalance);
+                    }
+
                     var supplies = await unitOfWork.SupplyRepository.GetUnpaidSupplies(requestModel.EntityId);
 
                     foreach (var supply in supplies)
@@ -105,7 +127,7 @@ namespace Services.ServicesImpl
 
                         var paymentAllocation = new PaymentAllocation
                         {
-                            PaymentId = payment.Id,
+                            TransactionId = transactionReponse.Model,
                             ReferenceType = OperationType.Supply.ToString(),
                             ReferenceId = supply.Id,
                             AllocatedAmount = toAllocate,
@@ -117,14 +139,21 @@ namespace Services.ServicesImpl
 
                         remainingAmount -= toAllocate;
                     }
-                    customer.CreditBalance += requestModel.Amount;  // 
+                    customer.CreditBalance += requestModel.Amount;
+                }
+                else
+                {
+                    response.IsError = true;
+                    response.Message = "Invalid TransactionType. Allowed values are 'Received' or 'Paid'.";
+                    return response;
+
                 }
 
                 if (await unitOfWork.SaveChangesAsync())
                 {
                     response.Message = "Payment added successfuly";
 
-                    response.Model = autoMapper.Map<PaymentResponseModel>(payment);
+                   // response.Model = autoMapper.Map<PaymentResponseModel>(tran);
 
                 }
                 return response;
@@ -215,7 +244,7 @@ namespace Services.ServicesImpl
 
                         await unitOfWork.PaymentRepository.AddPaymentAllocation(new PaymentAllocation
                         {
-                            PaymentId = payment.Id,
+                            //PaymentId = payment.Id,
                             ReferenceType = OperationType.Order.ToString(),
                             ReferenceId = order.Id,
                             AllocatedAmount = toAllocate
@@ -251,7 +280,7 @@ namespace Services.ServicesImpl
 
                         await unitOfWork.PaymentRepository.AddPaymentAllocation(new PaymentAllocation
                         {
-                            PaymentId = payment.Id,
+                           // PaymentId = payment.Id,
                             ReferenceType = OperationType.Supply.ToString(),
                             ReferenceId = supply.Id,
                             AllocatedAmount = toAllocate
