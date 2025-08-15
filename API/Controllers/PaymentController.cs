@@ -30,9 +30,9 @@ namespace API.Controllers
         }
 
         [HttpGet("")]
-        public async Task<IActionResult> GetPayments([FromQuery] int page = 1, [FromQuery] int pageSize = 10,[FromQuery] int? entityId = null)
+        public async Task<IActionResult> GetPayments([FromQuery] FilterModel filterModel)
         {
-            var result = await paymentService.GetPayments(page, pageSize, entityId);
+            var result = await paymentService.GetPayments(filterModel);
             return Ok(result);
         }
 

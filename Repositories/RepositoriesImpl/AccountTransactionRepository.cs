@@ -65,11 +65,14 @@ namespace Repositories.RepositoriesImpl
         {
             var query = context.AccountTransaction.AsNoTracking();
 
-            if (filter.EntityId != 0)
+            if (filter.EntityId.HasValue )
                 query = query.Where(a => a.EntityId == filter.EntityId);
 
-            if (filter.AccountId != 0)
+            if (filter.AccountId .HasValue)
                 query = query.Where(a => a.AccountId == filter.AccountId);
+
+            if (!string.IsNullOrEmpty(filter.TransactionType))
+                query = query.Where(b => b.TransactionType == filter.TransactionType);
 
             if (filter.FromDate.HasValue)
                 query = query.Where(b => b.TransactionDate >= filter.FromDate.Value);
@@ -101,7 +104,7 @@ namespace Repositories.RepositoriesImpl
                       && at.TransactionDirection == transactionDirection
                       && at.ReferenceType == referenceType
                 join pa in context.PaymentAllocation
-                    on at.Id equals pa.TransactionId into paGroup
+                    on at.Id equals pa.PaymentId into paGroup /// Fix to use TransactionId instead of PaymentId
                 select new
                 {
                     Transaction = at,

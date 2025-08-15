@@ -116,18 +116,19 @@ namespace Services.ServicesImpl
                         decimal remainingOrderAmount = order.TotalSellingPrice;
                         var receivableAccount= await unitOfWork.AccountRepository.GetAccountReceivable();
 
-                        var unallocatedPayments = await unitOfWork.AccountTransactionRepository.GetUnallocatedTransactions(requestModel.CustomerId, receivableAccount!.Id,TransactionDirection.Credit.ToString(),ReferenceType.Payment.ToString());
+                        var unallocatedPayments = await unitOfWork.PaymentRepository.GetUnallocatedPayments(customer.Id);
 
                         foreach (var payment in unallocatedPayments)
                         {
                             if (remainingOrderAmount <= 0) break;
+                            var allocatedSum = payment.PaymentAllocations.Sum(a => a.AllocatedAmount);
+                            var availableAmount = payment.Amount - allocatedSum;
 
-                            decimal available = payment.RemainingAmount;
-                            decimal toAllocate = Math.Min(available, remainingOrderAmount);
+                            decimal toAllocate = Math.Min(availableAmount, remainingOrderAmount);
 
                             await unitOfWork.PaymentRepository.AddPaymentAllocation(new PaymentAllocation
                             {
-                                TransactionId = payment.TransactionId,
+                                PaymentId = payment.Id,
                                 ReferenceType = OperationType.Order.ToString(),
                                 ReferenceId = order.Id,
                                 AllocatedAmount = toAllocate

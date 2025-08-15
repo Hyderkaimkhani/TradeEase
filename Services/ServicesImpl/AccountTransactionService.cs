@@ -170,7 +170,7 @@ namespace Services.ServicesImpl
                     var transaction = new AccountTransaction
                     {
                         AccountId = receivableAccount.Id,
-                        TransactionType = OperationType.Order.ToString(),
+                        TransactionType = TransactionType.Order.ToString(),
                         TransactionDirection = TransactionDirection.Debit.ToString(), // Money coming IN (customer owes you)
                         Amount = amount,
                         TransactionDate = transactionDate,
@@ -218,7 +218,7 @@ namespace Services.ServicesImpl
                     var transaction = new AccountTransaction
                     {
                         AccountId = payablesAccount.Id,
-                        TransactionType = OperationType.Supply.ToString(),
+                        TransactionType = TransactionType.Supply.ToString(),
                         TransactionDirection = TransactionDirection.Credit.ToString(), // Money going OUT (you owe supplier)
                         Amount = amount,
                         TransactionDate = transactionDate,
@@ -263,7 +263,7 @@ namespace Services.ServicesImpl
                     {
                         AccountId = paymentModel.AccountId,
                         TransactionType = TransactionType.Payment.ToString(),
-                        TransactionDirection = paymentModel.TransactionDirection,
+                        //TransactionDirection = paymentModel.TransactionDirection,
                         Amount = paymentModel.Amount,
                         TransactionDate = paymentModel.PaymentDate,
                         PaymentMethod = paymentModel.PaymentMethod,
@@ -309,7 +309,7 @@ namespace Services.ServicesImpl
                     var transaction = new AccountTransaction
                     {
                         AccountId = accountId,
-                        TransactionType = "Expense",
+                        TransactionType = TransactionType.Expense.ToString(),
                         TransactionDirection = "Credit", // Money going OUT
                         Amount = amount,
                         TransactionDate = DateTime.Now,
@@ -358,7 +358,7 @@ namespace Services.ServicesImpl
                     var transaction = new AccountTransaction
                     {
                         AccountId = accountId,
-                        TransactionType = "Income",
+                        TransactionType = TransactionType.Income.ToString(),
                         TransactionDirection = "Debit", // Money coming IN
                         Amount = amount,
                         TransactionDate = DateTime.Now,

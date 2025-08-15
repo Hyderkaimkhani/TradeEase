@@ -5,13 +5,9 @@ namespace Domain.Models.RequestModel
 {
     public class PaymentAddModel
     {
-        [RegularExpression("^(Debit|Credit)$", ErrorMessage = "Invalid TransactionDirection")]
-        [JsonIgnore]
-        public string TransactionDirection { get; set; } = string.Empty; // "Debit=>Incoming" or "Credit=>Outgoing"  
-
         [Required]
-        [RegularExpression("^(Received|Paid)$", ErrorMessage = "Invalid TransactionType")]
-        public string TransactionType { get; set; } = string.Empty;
+        [RegularExpression("^(Received|Paid)$", ErrorMessage = "Invalid TransactionFlow")]
+        public string TransactionFlow { get; set; } = string.Empty;
 
         [Required]
         public int EntityId { get; set; }

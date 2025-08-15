@@ -11,8 +11,12 @@ namespace Repositories.Interfaces
 
         Task<PaginatedResponseModel<Payment>> GetPayments(int page, int pageSize, int? entityId, DateTime? paymentDate);
 
+        Task<List<Payment>> GetUnallocatedPayments(int customerId);
+
         Task<PaymentAllocation> AddPaymentAllocation(PaymentAllocation entity);
 
         Task<List<PaymentAllocation>> GetPaymentAllocation(string referenctType, int referenceId);
+
+        Task<List<PaymentAllocation>> GetPaymentAllocation(int transactionId);
     }
 }

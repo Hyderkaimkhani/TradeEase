@@ -22,7 +22,7 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<Payment?> GetPayment(int id)
         {
-            var payment = await _context.Set<Payment>().Include(p => p.PaymentAllocations).Include(p=>p.Customer).FirstOrDefaultAsync(x => x.Id == id);
+            var payment = await _context.Set<Payment>().Include(p => p.PaymentAllocations).Include(p=>p.Customer).Include(p=>p.Account).FirstOrDefaultAsync(x => x.Id == id);
             return payment;
         }
 
@@ -52,6 +52,17 @@ namespace Repositories.RepositoriesImpl
             };
         }
 
+        public async Task<List<Payment>> GetUnallocatedPayments(int customerId)
+        {
+            var unallocatedPayments = await _context.Payment.Include(p=>p.PaymentAllocations)
+                .Where(p => p.EntityId == customerId && p.IsActive)
+                .Where(p => (p.PaymentAllocations.Sum(a => (decimal?)a.AllocatedAmount) ?? 0m) < p.Amount)
+                .OrderBy(p => p.PaymentDate)
+                .ToListAsync();
+
+            return unallocatedPayments;
+        }
+
         public async Task<PaymentAllocation> AddPaymentAllocation(PaymentAllocation entity)
         {
             var paymentAllocation = _context.PaymentAllocation.Add(entity);
@@ -61,6 +72,12 @@ namespace Repositories.RepositoriesImpl
         public async Task<List<PaymentAllocation>> GetPaymentAllocation(string referenctType ,int referenceId)
         {
             var paymentAllocations = await _context.PaymentAllocation.Where(x=> x.IsActive && x.ReferenceType == referenctType && x.ReferenceId == referenceId ).ToListAsync();
+            return paymentAllocations;
+        }
+
+        public async Task<List<PaymentAllocation>> GetPaymentAllocation(int transactionId)
+        {
+            var paymentAllocations = await _context.PaymentAllocation.Where(x => x.IsActive && x.TransactionId == transactionId).ToListAsync();
             return paymentAllocations;
         }
     }

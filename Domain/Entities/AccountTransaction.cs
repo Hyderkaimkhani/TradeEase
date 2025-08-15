@@ -47,7 +47,7 @@ namespace Domain.Entities
         public virtual Account Account { get; set; }
         public virtual Account ToAccount { get; set; }
         public virtual Customer Customer { get; set; }
-        
+
         public AccountTransaction()
         {
             TransactionType = string.Empty;

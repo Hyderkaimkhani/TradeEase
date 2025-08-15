@@ -12,7 +12,7 @@ namespace Services.Interfaces
 
         Task<ResponseModel<PaymentResponseModel>> GetPayment(int id);
 
-        Task<PaginatedResponseModel<PaymentResponseModel>> GetPayments(int page, int pageSize, int? customerId);
+        Task<PaginatedResponseModel<PaymentResponseModel>> GetPayments(FilterModel filterModel);
 
         Task<ResponseModel<bool>> DeletePayment(int paymentId);
     }

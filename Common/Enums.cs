@@ -67,4 +67,10 @@
         Transfer, 
         OpeningBalance
     }
+
+    public enum TransactionFlow
+    {
+        Paid,     // Outgoing
+        Received       // Incoming
+    }
 }

@@ -67,6 +67,19 @@ namespace Services.ServicesImpl
                         }
                         else
                         {
+                            var payment = new Payment();
+
+                            payment.Amount = (decimal)requestModel.CreditBalance;
+                            payment.TransactionFlow = requestModel.CreditBalance > 0 ? TransactionFlow.Paid.ToString() : TransactionFlow.Received.ToString();
+                            payment.AccountId = account.Id;
+                            payment.PaymentDate = DateTime.UtcNow;
+                            payment.PaymentMethod = "Opening Balance";
+                            payment.Notes = "Opening Balance";
+                            payment.Customer = addedCustomer;
+
+                            payment = await unitOfWork.PaymentRepository.AddPayment(payment);
+
+
                             var addTransactionModel = GetOpeningBalanceTransaction(account.Id, customer.Id, (decimal)requestModel.CreditBalance);
 
                             var transaction = autoMapper.Map<AccountTransaction>(addTransactionModel);
