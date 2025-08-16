@@ -44,6 +44,7 @@ namespace API.Controllers
         }
 
         [HttpPost("Update")]
+        [Obsolete]
         public async Task<IActionResult> UpdatePayment(PaymentUpdateModel requestModel)
         {
             if (!ModelState.IsValid)

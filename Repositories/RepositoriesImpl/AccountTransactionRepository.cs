@@ -1,10 +1,14 @@
-﻿using Domain.Entities;
+﻿using Dapper;
+using Domain.Entities;
 using Domain.Models;
 using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Repositories.Context;
 using Repositories.Interfaces;
 using System.Data;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Repositories.RepositoriesImpl
 {
@@ -33,11 +37,6 @@ namespace Repositories.RepositoriesImpl
             return balance;
         }
 
-        public Task<AccountStatementResponseModel> GetAccountStatement(AccountStatementRequestModel request)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<AccountTransaction?> GetTransaction(int id)
         {
             var result = await context.AccountTransaction.FirstOrDefaultAsync(b => b.Id == id);
@@ -61,14 +60,21 @@ namespace Repositories.RepositoriesImpl
             return result;
         }
 
+        public async Task<List<AccountTransaction>> GetTransactionsByReference(string referenceType, int referenceId)
+        {
+            var result = await context.AccountTransaction.Where(t => t.ReferenceType == referenceType && t.ReferenceId == referenceId).ToListAsync();
+
+            return result;
+        }
+
         public async Task<PaginatedResponseModel<AccountTransaction>> GetTransactions(FilterModel filter)
         {
             var query = context.AccountTransaction.AsNoTracking();
 
-            if (filter.EntityId.HasValue )
+            if (filter.EntityId.HasValue)
                 query = query.Where(a => a.EntityId == filter.EntityId);
 
-            if (filter.AccountId .HasValue)
+            if (filter.AccountId.HasValue)
                 query = query.Where(a => a.AccountId == filter.AccountId);
 
             if (!string.IsNullOrEmpty(filter.TransactionType))
@@ -148,7 +154,7 @@ namespace Repositories.RepositoriesImpl
         //        WHERE AccountId = @AccountId AND CompanyId = @CompanyId AND IsActive = 1 
         //        AND TransactionDate < @FromDate";
 
-        //    var openingBalance = await connection.ExecuteScalarAsync<decimal>(openingBalanceSql, 
+        //    var openingBalance = await connection.ExecuteScalarAsync<decimal>(openingBalanceSql,
         //        new { request.AccountId, CompanyId = companyId, request.FromDate });
 
         //    // Get transactions
@@ -214,6 +220,102 @@ namespace Repositories.RepositoriesImpl
 
         //    return statement;
         //}
+
+        public async Task<AccountStatementResponseModel> GetAccountStatement(AccountStatementRequestModel request)
+        {
+            var result = new AccountStatementResponseModel();
+
+            // Grab the connection EF Core is already using
+            using var connection = context.Database.GetDbConnection();
+            if (connection.State != ConnectionState.Open)
+                await connection.OpenAsync();
+
+            // Set up parameters
+            var parameters = new DynamicParameters();
+            parameters.Add("@CompanyId", request.CompanyId, DbType.Int32);
+            parameters.Add("@FromDate", request.FromDate, DbType.Date);
+            parameters.Add("@ToDate", request.ToDate, DbType.Date);
+            parameters.Add("@AccountId", request.AccountId, DbType.Int32);
+            parameters.Add("@EntityId", request.EntityId, DbType.Int32);
+            parameters.Add("@TransactionType", request.TransactionType, DbType.String);
+
+            // Call stored procedure and get both result sets
+            using (var multi = await connection.QueryMultipleAsync(
+                "sp_GetAccountStatement",
+                parameters,
+                commandType: CommandType.StoredProcedure))
+            {
+                // First result set: transactions
+                var transactions = (await multi.ReadAsync<AccountTransactionResponseModel>()).ToList();
+                result.Transactions = transactions;
+
+                // Second result set: metadata
+                var meta = await multi.ReadFirstOrDefaultAsync<StatementMetadata>();
+                if (meta != null)
+                {
+                    result.OpeningBalance = meta.OpeningBalance;
+                    result.ClosingBalance = meta.ClosingBalance;
+                    result.StatementTitle = meta.StatementTitle;
+
+                    if (request.EntityId == null)
+                        result.AccountName = meta.StatementTitle;
+                    else
+                        result.EntityName = meta.StatementTitle?.Replace(" (AP/AR Statement)", "");
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<AccountStatementResponseModel> GetAccountStatementADONET(AccountStatementRequestModel request)
+        {
+            var result = new AccountStatementResponseModel();
+            context.Database.GetDbConnection();
+            // Set up parameters
+            var parameters = new[]
+            {
+                new SqlParameter("@CompanyId", request.CompanyId),
+                new SqlParameter("@FromDate", request.FromDate),
+                new SqlParameter("@ToDate", request.ToDate),
+                new SqlParameter("@AccountId", request.AccountId ?? (object)DBNull.Value),
+                new SqlParameter("@EntityId", request.EntityId ?? (object)DBNull.Value),
+                new SqlParameter("@TransactionType", request.TransactionType ?? (object)DBNull.Value)
+            };
+
+            // Execute the stored procedure for transactions
+            var transactions = await context.Set<AccountTransactionResponseModel>()
+                .FromSqlRaw("EXEC sp_GetAccountStatement @CompanyId, @FromDate, @ToDate, @AccountId, @EntityId, @TransactionType", parameters)
+                .ToListAsync();
+
+            result.Transactions = transactions;
+
+            // Get the metadata (second result set)
+            var metadata = await context.Set<StatementMetadata>()
+                .FromSqlRaw("EXEC sp_GetAccountStatement @CompanyId, @FromDate, @ToDate, @AccountId, @EntityId, @TransactionType", parameters)
+            .ToListAsync();
+
+
+            if (metadata.FirstOrDefault() is StatementMetadata meta)
+            {
+                result.OpeningBalance = meta.OpeningBalance;
+                result.ClosingBalance = meta.ClosingBalance;
+                result.StatementTitle = meta.StatementTitle;
+
+                if (request.EntityId == null)
+                {
+                    result.AccountName = meta.StatementTitle;
+                }
+                else
+                {
+                    result.EntityName = meta.StatementTitle?.Replace(" (AP/AR Statement)", "");
+                }
+            }
+
+            return result;
+        }
+
+        // Metadata model for the second result set
+
 
     }
 }

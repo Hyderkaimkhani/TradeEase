@@ -64,7 +64,7 @@ namespace Services.ServicesImpl
                 {
                     AccountId = requestModel.AccountId,
                     TransactionType = TransactionType.Payment.ToString(),
-                    TransactionDirection = requestModel.TransactionFlow == TransactionFlow.Received.ToString()? TransactionDirection.Debit.ToString() : TransactionDirection.Credit.ToString(),
+                    TransactionDirection = requestModel.TransactionFlow == TransactionFlow.Received.ToString() ? TransactionDirection.Debit.ToString() : TransactionDirection.Credit.ToString(),
                     Amount = requestModel.Amount,
                     TransactionDate = requestModel.PaymentDate,
                     PaymentMethod = requestModel.PaymentMethod,
@@ -74,7 +74,7 @@ namespace Services.ServicesImpl
                     Notes = requestModel.Notes
                 };
 
-                var accountTransaction =  await accountTransactionService.AddTransaction(transaction);
+                var accountTransaction = await accountTransactionService.AddTransaction(transaction);
                 if (accountTransaction.IsError)
                 {
                     response.IsError = true;
@@ -99,7 +99,7 @@ namespace Services.ServicesImpl
                     var receivableAccount = await unitOfWork.AccountRepository.GetAccountReceivable();
                     transaction.TransactionDirection = TransactionDirection.Credit.ToString();
                     transaction.AccountId = receivableAccount!.Id; // Set AccountId to Receivables account
-                    
+
                     var receivableTransaction = await accountTransactionService.AddTransaction(transaction);
                     if (receivableTransaction.IsError)
                     {
@@ -112,14 +112,8 @@ namespace Services.ServicesImpl
                     {
                         // You owe them (advance payment given) — so payment increases allocatable amount
                         remainingAmount += Math.Abs(customer.CreditBalance);
-
                     }
-                    else if (customer.CreditBalance > 0)
-                    {
-                        // They owe you already — so payment should first settle that debt
-                        remainingAmount -= customer.CreditBalance;
 
-                    }
                     var unpaidOrders = await unitOfWork.OrderRepository.GetUnpaidOrders(requestModel.EntityId);
 
                     foreach (var order in unpaidOrders)
@@ -393,23 +387,13 @@ namespace Services.ServicesImpl
                 else
                 {
                     var paymentModel = autoMapper.Map<PaymentResponseModel>(accountTransaction);
-                    var paymentAllocations = await unitOfWork.PaymentRepository.GetPaymentAllocation(id);
-                    foreach (var allocation in paymentModel.PaymentAllocations)
+                    foreach (var paymentAllocation in paymentModel.PaymentAllocations)
                     {
-                        PaymentAllocationResponseModel paymentAllocation = new PaymentAllocationResponseModel();
-                        paymentAllocation.Id = allocation.Id;
-                        paymentAllocation.ReferenceType = allocation.ReferenceType;
-                        paymentAllocation.ReferenceId = allocation.ReferenceId;
-                        paymentAllocation.AllocatedAmount = allocation.AllocatedAmount;
-                        paymentAllocation.PaymentId = allocation.PaymentId;
-
-                        if (allocation.ReferenceType == OperationType.Order.ToString())
+                        if (paymentAllocation.ReferenceType == OperationType.Order.ToString())
                         {
                             var order = await unitOfWork.OrderRepository.GetOrder(paymentAllocation.ReferenceId);
-
                             if (order != null)
                             {
-                               
                                 paymentAllocation.Number = order.OrderNumber;
                                 paymentAllocation.TruckNumber = order.TruckNumber;
                                 paymentAllocation.Price = order.SellingPrice;
@@ -420,7 +404,7 @@ namespace Services.ServicesImpl
 
                             }
                         }
-                        else if (allocation.ReferenceType == OperationType.Supply.ToString())
+                        else if (paymentAllocation.ReferenceType == OperationType.Supply.ToString())
                         {
                             var supply = await unitOfWork.SupplyRepository.GetSupply(paymentAllocation.ReferenceId);
                             if (supply != null)
@@ -434,7 +418,6 @@ namespace Services.ServicesImpl
                                 paymentAllocation.PaymentStatus = supply.PaymentStatus;
                             }
                         }
-                        response.Model.PaymentAllocations.Add(paymentAllocation);
                     }
                     response.Model = paymentModel;
                 }
@@ -466,20 +449,21 @@ namespace Services.ServicesImpl
             }
         }
 
-        public async Task<ResponseModel<bool>> DeletePayment(int transactionId)
+        public async Task<ResponseModel<bool>> DeletePayment(int paymentId)
         {
             var response = new ResponseModel<bool>();
             using var unitOfWork = unitOfWorkFactory.CreateUnitOfWork();
 
-            var accountTransaction = await unitOfWork.AccountTransactionRepository.GetTransaction(transactionId);
-            if (accountTransaction == null || !accountTransaction.IsActive || accountTransaction.TransactionType != TransactionType.Payment.ToString())
+            var payment = await unitOfWork.PaymentRepository.GetPayment(paymentId);
+            if (payment == null || !payment.IsActive)
             {
                 response.IsError = true;
                 response.Message = "Payment already deleted.";
                 return response;
             }
 
-            var customer = await unitOfWork.AdminRepository.GetCustomer((int)accountTransaction.EntityId);
+
+            var customer = await unitOfWork.AdminRepository.GetCustomer(payment.EntityId);
             if (customer == null)
             {
                 response.IsError = true;
@@ -489,9 +473,8 @@ namespace Services.ServicesImpl
 
             decimal allocatedTotal = 0;
 
-            var paymentAllocations = await unitOfWork.PaymentRepository.GetPaymentAllocation(transactionId);
             var affectedIds = new List<int>();
-            foreach (var alloc in paymentAllocations)
+            foreach (var alloc in payment.PaymentAllocations)
             {
                 allocatedTotal += alloc.AllocatedAmount;
 
@@ -524,29 +507,26 @@ namespace Services.ServicesImpl
             }
 
             // Reverse customer balance
-            if (accountTransaction.TransactionDirection == TransactionDirection.Credit.ToString())
+            if (payment.TransactionFlow == TransactionFlow.Received.ToString())
             {
-                customer.CreditBalance += accountTransaction.Amount;
+                customer.CreditBalance += payment.Amount;
             }
-            else if (accountTransaction.TransactionDirection == TransactionDirection.Debit.ToString())
+            else if (payment.TransactionFlow == TransactionFlow.Paid.ToString())
             {
-                customer.CreditBalance -= accountTransaction.Amount;
+                customer.CreditBalance -= payment.Amount;
             }
 
-            var trnsactionResponse = await accountTransactionService.DeleteTransaction(transactionId);
+            var accountTransactions = await unitOfWork.AccountTransactionRepository.GetTransactionsByReference(ReferenceType.Payment.ToString(), payment.Id);
 
-            if (!trnsactionResponse.IsError)
+            foreach (var transaction in accountTransactions)
             {
-                if (await unitOfWork.SaveChangesAsync())
-                {
-                    response.Message = "Payment deleted successfully";
-                    response.Model = true;
-                }              
+                await accountTransactionService.DeleteTransaction(transaction.Id);
             }
-            else
+
+            if (await unitOfWork.SaveChangesAsync())
             {
-                response.IsError = true;
-                response.Message = trnsactionResponse.Message;
+                response.Message = "Payment deleted successfully";
+                response.Model = true;
             }
 
             return response;

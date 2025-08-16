@@ -57,6 +57,7 @@
     <Folder Include="Data" />
     <Folder Include="Tables" />
     <Folder Include="Scripts" />
+    <Folder Include="StoredProcedure" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Tables\Customer.sql" />
@@ -70,6 +71,7 @@
     <Build Include="Tables\Company.sql" />
     <Build Include="Tables\Account.sql" />
     <Build Include="Tables\AccountTransaction.sql" />
+    <Build Include="StoredProcedure\SP_GetAccountStatement.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />

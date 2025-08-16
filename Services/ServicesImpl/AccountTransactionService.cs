@@ -16,12 +16,14 @@ namespace Services.ServicesImpl
     {
         private readonly IMapper autoMapper;
         private readonly IUnitOfWorkFactory unitOfWorkFactory;
+        private readonly ICurrentUserService _currentUserService;
 
-        public AccountTransactionService(IUnitOfWorkFactory unitOfWorkFactory,
-            IMapper mapper)
+        public AccountTransactionService(IUnitOfWorkFactory unitOfWorkFactory, ICurrentUserService currentUserService,
+        IMapper mapper)
         {
             this.unitOfWorkFactory = unitOfWorkFactory;
             autoMapper = mapper;
+            _currentUserService = currentUserService;
         }
 
         public async Task<ResponseModel<AccountTransactionResponseModel>> AddTransaction(AccountTransactionAddModel requestModel)
@@ -111,6 +113,7 @@ namespace Services.ServicesImpl
 
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
+                requestModel.CompanyId = _currentUserService.GetCurrentCompanyId();
                 var statement = await unitOfWork.AccountTransactionRepository.GetAccountStatement(requestModel);
                 response.Model = statement;
             }

@@ -11,6 +11,7 @@ namespace Repositories.Interfaces
         Task<AccountTransaction?> GetTransaction(int id);
         Task<AccountTransaction?> GetTransactionDetail(int id);
         Task<AccountTransaction?> GetTransaction(string referenceType, int referenceId);
+        Task<List<AccountTransaction>> GetTransactionsByReference(string referenceType, int referenceId);
         Task<PaginatedResponseModel<AccountTransaction>> GetTransactions(FilterModel filterModel);
         Task<AccountStatementResponseModel> GetAccountStatement(AccountStatementRequestModel request);
         Task<decimal> GetAccountBalanceAsOfDate(int accountId, DateTime asOfDate);

@@ -75,9 +75,9 @@ namespace Repositories.RepositoriesImpl
             return paymentAllocations;
         }
 
-        public async Task<List<PaymentAllocation>> GetPaymentAllocation(int transactionId)
+        public async Task<List<PaymentAllocation>> GetPaymentAllocation(int paymentId)
         {
-            var paymentAllocations = await _context.PaymentAllocation.Where(x => x.IsActive && x.TransactionId == transactionId).ToListAsync();
+            var paymentAllocations = await _context.PaymentAllocation.Where(x => x.IsActive && x.PaymentId == paymentId).ToListAsync();
             return paymentAllocations;
         }
     }

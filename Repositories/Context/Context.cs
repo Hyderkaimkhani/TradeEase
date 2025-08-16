@@ -1,5 +1,6 @@
 ﻿using Common.Interfaces;
 using Domain.Entities;
+using Domain.Models.ResponseModel;
 using Microsoft.EntityFrameworkCore;
 
 namespace Repositories.Context
@@ -71,8 +72,21 @@ namespace Repositories.Context
             modelBuilder.Entity<AccountTransaction>().HasQueryFilter(t => t.CompanyId == CurrentCompanyId)
                .HasOne(a => a.Customer)
                .WithMany()
-               .HasForeignKey(a => a.EntityId); ;
+               .HasForeignKey(a => a.EntityId);
 
+            modelBuilder.Entity<AccountTransactionResponseModel>(eb =>
+            {
+                eb.HasNoKey(); // Mark as keyless
+                eb.ToView(null); // Not mapped to a table
+                eb.Property(e => e.AccountId).IsRequired(false); // Mark as optional
+            });
+
+
+            modelBuilder.Entity<StatementMetadata>(eb =>
+            {
+                eb.HasNoKey(); // Mark as keyless
+                eb.ToView(null); // Not mapped to a table
+            });            
         }
     }
 }

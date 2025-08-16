@@ -28,11 +28,11 @@ namespace Domain.AutoMapperProfiles
             //.ForMember(dest => dest.SignedAmount, opt => opt.MapFrom(src => 
             //    src.TransactionDirection == "Debit" ? src.Amount : src.Amount));
 
-            CreateMap<AccountTransaction, PaymentResponseModel>()
-                .ForMember(dest => dest.TransactionType, opt => opt.MapFrom(src =>
-                src.TransactionDirection == "Debit" ? "Received" : "Paid"))
-                .ForMember(dest => dest.AccountName, opt => opt.MapFrom(src => src.Account != null ? src.Account.Name : ""))
-                .ForMember(dest => dest.PaymentBy, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.Name : ""));
+            //CreateMap<AccountTransaction, PaymentResponseModel>()
+            //    .ForMember(dest => dest.TransactionFlow, opt => opt.MapFrom(src =>
+            //    src.TransactionDirection == "Debit" ? "Received" : "Paid"))
+            //    .ForMember(dest => dest.AccountName, opt => opt.MapFrom(src => src.Account != null ? src.Account.Name : ""))
+            //    .ForMember(dest => dest.PaymentBy, opt => opt.MapFrom(src => src.Customer != null ? src.Customer.Name : ""));
         }
     }
 }

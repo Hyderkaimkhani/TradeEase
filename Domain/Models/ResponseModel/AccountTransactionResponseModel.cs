@@ -4,7 +4,7 @@ namespace Domain.Models.ResponseModel
     {
         public int Id { get; set; }
         public int CompanyId { get; set; }
-        public int AccountId { get; set; }
+        public int? AccountId { get; set; }
         public string AccountName { get; set; }
         public string TransactionType { get; set; }
         public string TransactionDirection { get; set; }
@@ -21,6 +21,7 @@ namespace Domain.Models.ResponseModel
         public string? Party { get; set; }
         public int? ToAccountId { get; set; }
         public string? ToAccountName { get; set; }
+        public decimal RunningBalance { get; set; } // Balance after this transaction
         public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; }
         
