@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Domain.Models;
+using Domain.Models.RequestModel;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Interfaces;
 
@@ -26,23 +27,27 @@ namespace Repositories.RepositoriesImpl
             return payment;
         }
 
-        public async Task<PaginatedResponseModel<Payment>> GetPayments(int page, int pageSize, int? entityId, DateTime? paymentDate = null)
+        public async Task<PaginatedResponseModel<Payment>> GetPayments(FilterModel filter)
         {
             var query = _context.Set<Payment>().AsNoTracking();
 
-            if (paymentDate.HasValue)
-                query = query.Where(x => x.PaymentDate == paymentDate.Value);
+            if (filter.EntityId.HasValue)
+                query = query.Where(p => p.EntityId == filter.EntityId);
 
-            if (entityId.HasValue)
-                query = query.Where(x => x.EntityId == entityId.Value);
+            if (filter.FromDate.HasValue)
+                query = query.Where(p => p.PaymentDate >= filter.FromDate.Value);
+
+            if (filter.ToDate.HasValue)
+                query = query.Where(p => p.PaymentDate <= filter.ToDate.Value);
+
 
             var totalCount = await query.CountAsync();
 
             var payments = await query
                 .Include(s => s.Customer)
                 .OrderByDescending(s => s.PaymentDate)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
                 .ToListAsync();
 
             return new PaginatedResponseModel<Payment>

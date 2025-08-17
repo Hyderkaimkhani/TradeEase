@@ -49,7 +49,7 @@
 
     public enum AccountType
     {
-        Recievable,
+        Receivable,
         Payable,
         Cash,
         Bank,

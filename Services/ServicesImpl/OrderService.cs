@@ -114,7 +114,7 @@ namespace Services.ServicesImpl
                     if (customer.CreditBalance < 0) // If customer has paid in advance, try to allocate from it
                     {
                         decimal remainingOrderAmount = order.TotalSellingPrice;
-                        var receivableAccount= await unitOfWork.AccountRepository.GetAccountReceivable();
+                        var receivableAccount = await unitOfWork.AccountRepository.GetAccountReceivable();
 
                         var unallocatedPayments = await unitOfWork.PaymentRepository.GetUnallocatedPayments(customer.Id);
 
@@ -222,6 +222,7 @@ namespace Services.ServicesImpl
                     order.SellingPrice = requestModel.SellingPrice;
                     order.Quantity = requestModel.Quantity;
                     order.TruckId = truck.Id;
+                    order.TruckNumber = truck.TruckNumber;
                     order.TotalSellingPrice = requestModel.Quantity * requestModel.SellingPrice;
                     order.Status = requestModel.Status;
                     //order.OrderDate = requestModel.OrderDate;
@@ -230,6 +231,7 @@ namespace Services.ServicesImpl
 
                     if (oldTotal != order.TotalSellingPrice)
                     {
+                        order.ProfitLoss = order.TotalSellingPrice - order.TotalPurchasePrice;
                         // Adjust Customer Account
                         await adminService.AdjustCustomerBalance(unitOfWork, order.CustomerId, oldTotal, order.TotalSellingPrice, OperationType.Order.ToString());
 
@@ -357,7 +359,7 @@ namespace Services.ServicesImpl
                         truckAssignment.IsActive = false;
 
                     await adminService.AdjustCustomerBalance(unitOfWork, order.CustomerId, order.TotalSellingPrice, 0, OperationType.Order.ToString());
-                    
+
                     var transaction = await unitOfWork.AccountTransactionRepository.GetTransaction(OperationType.Order.ToString(), orderId);
 
                     if (transaction != null)

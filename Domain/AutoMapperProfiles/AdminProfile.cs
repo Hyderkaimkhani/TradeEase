@@ -53,7 +53,7 @@ namespace Domain.AutoMapperProfiles
                 .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Name));
 
             CreateMap<Payment, PaymentResponseModel>()
-               .ForMember(dest => dest.PaymentBy, opt => opt.MapFrom(src => src.Customer.Name))
+               .ForMember(dest => dest.CustomerName, opt => opt.MapFrom(src => src.Customer.Name))
                .ForMember(dest => dest.AccountName, opt => opt.MapFrom(src => src.Account.Name));
 
             CreateMap<PaymentAllocation, PaymentAllocationResponseModel>();

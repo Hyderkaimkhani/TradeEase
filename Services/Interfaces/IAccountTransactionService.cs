@@ -17,8 +17,8 @@ namespace Services.Interfaces
         Task<ResponseModel<bool>> RecordOrderTransaction(int orderId, int customerId, decimal amount, DateTime transactionDate);
         Task<ResponseModel<bool>> RecordSupplyTransaction(int supplyId, int supplierId, decimal amount, DateTime transactionDate);
         Task<ResponseModel<int>> RecordPaymentTransaction(PaymentAddModel paymentModel);
-        Task<ResponseModel<bool>> RecordExpenseTransaction(string category, string party, decimal amount, int accountId);
-        Task<ResponseModel<bool>> RecordIncomeTransaction(string category, string party, decimal amount, int accountId);
+        Task<ResponseModel<bool>> RecordExpenseTransaction(string category, string party, decimal amount, int accountId, DateTime transactionDate);
+        Task<ResponseModel<bool>> RecordIncomeTransaction(string category, string party, decimal amount, int accountId, DateTime transactionDate);
 
         void UpdateAccountBalance(Account account, AccountTransaction transaction);
     }

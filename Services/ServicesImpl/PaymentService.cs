@@ -376,17 +376,17 @@ namespace Services.ServicesImpl
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<PaymentResponseModel>();
-                response.Model.PaymentAllocations = new List<PaymentAllocationResponseModel>();
-                var accountTransaction = await unitOfWork.AccountTransactionRepository.GetTransactionDetail(id);
+                //response.Model.PaymentAllocations = new List<PaymentAllocationResponseModel>();
+                var payment = await unitOfWork.PaymentRepository.GetPayment(id);
 
-                if (accountTransaction == null || accountTransaction.TransactionType != TransactionType.Payment.ToString())
+                if (payment == null)
                 {
                     response.IsError = true;
                     response.Message = "Payment does not exists";
                 }
                 else
                 {
-                    var paymentModel = autoMapper.Map<PaymentResponseModel>(accountTransaction);
+                    var paymentModel = autoMapper.Map<PaymentResponseModel>(payment);
                     foreach (var paymentAllocation in paymentModel.PaymentAllocations)
                     {
                         if (paymentAllocation.ReferenceType == OperationType.Order.ToString())
@@ -433,17 +433,17 @@ namespace Services.ServicesImpl
                 var response = new PaginatedResponseModel<PaymentResponseModel>();
 
                 filterModel.TransactionType = TransactionType.Payment.ToString();
-                var accountTransaction = await unitOfWork.AccountTransactionRepository.GetTransactions(filterModel);
+                var payments = await unitOfWork.PaymentRepository.GetPayments(filterModel);
 
-                if (accountTransaction.Model == null || accountTransaction.Model.Count < 1)
+                if (payments.Model == null || payments.TotalCount < 1)
                 {
                     response.Message = "No Payment found";
                     response.Model = new List<PaymentResponseModel>();
                 }
                 else
                 {
-                    response.Model = autoMapper.Map<List<PaymentResponseModel>>(accountTransaction.Model);
-                    response.TotalCount = accountTransaction.TotalCount;
+                    response.Model = autoMapper.Map<List<PaymentResponseModel>>(payments.Model);
+                    response.TotalCount = payments.TotalCount;
                 }
                 return response;
             }

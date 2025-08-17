@@ -1,6 +1,7 @@
 using Domain.Models.RequestModel;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using QuestPDF.Fluent;
 using Services.Interfaces;
 
 namespace API.Controllers
@@ -49,6 +50,18 @@ namespace API.Controllers
 
             var response = await _accountTransactionService.GetAccountStatement(requestModel);
             return Ok(response);
+        }
+
+        [HttpGet("export-statement")]
+        public async Task<IActionResult> ExportStatement([FromBody] AccountStatementRequestModel requestModel)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("One or more required parameters not passed.");
+
+            var response = await _accountTransactionService.GetAccountStatement(requestModel);
+            var pdf = new StatementDocument(response.Model).GeneratePdf();
+
+            return File(pdf, "application/pdf", "Statement.pdf");
         }
 
         [HttpDelete("{id}")]

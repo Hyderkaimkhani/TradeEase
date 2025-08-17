@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Domain.Models;
+using Domain.Models.RequestModel;
 
 namespace Repositories.Interfaces
 {
@@ -9,7 +10,7 @@ namespace Repositories.Interfaces
 
         Task<Payment?> GetPayment(int id);
 
-        Task<PaginatedResponseModel<Payment>> GetPayments(int page, int pageSize, int? entityId, DateTime? paymentDate);
+        Task<PaginatedResponseModel<Payment>> GetPayments(FilterModel filterModel);
 
         Task<List<Payment>> GetUnallocatedPayments(int customerId);
 

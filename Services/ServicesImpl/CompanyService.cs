@@ -24,15 +24,33 @@ namespace Services.ServicesImpl
 
         public async Task<ResponseModel<CompanyResponseModel>> AddCompany(CompanyAddRequestModel model)
         {
+
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<CompanyResponseModel>();
+                byte[]? logoBytes = null;
+
+                if (model.Logo != null && model.Logo.Length > 0)
+                {
+                    using var memoryStream = new MemoryStream();
+                    await model.Logo.CopyToAsync(memoryStream);
+
+                    // Optional: restrict size (1 MB)
+                    if (memoryStream.Length > 1024 * 1024)
+                    {
+                        response.IsError = true;
+                        response.Message = "Logo size exceeds the maximum limit of 1 MB.";
+                        return response;
+                    }                     
+                    logoBytes = memoryStream.ToArray();
+                }
+    
                 var company = mapper.Map<Company>(model);
                 company.Code = Utilities.GenerateRandomNumberULID();
                 company.MaxUsers = 5;
                 company.CurrencySymbol = "Rs";
                 company.Timezone = "Asia/Karachi | +05:00";
-                company.Logo = model.Logo != null ? await ConvertToBytes(model.Logo) : null;
+                company.Logo = model.Logo != null ? logoBytes : null;
                 company.IsActive = true;
                 var added = await unitOfWork.CompanyRepository.AddCompany(company);
 

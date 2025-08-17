@@ -204,6 +204,7 @@ namespace Services.ServicesImpl
                     supply.TruckId = truck.Id;
                     supply.Notes = requestModel.Notes;
                     supply.SupplyDate = requestModel.SupplyDate;
+                    supply.TruckNumber = truck.TruckNumber;
 
                     //decimal difference = oldTotal - supply.TotalPrice; // 5-3 =2 , 5-10 =-5
 

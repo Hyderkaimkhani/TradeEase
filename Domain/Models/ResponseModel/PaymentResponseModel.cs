@@ -7,6 +7,9 @@ namespace Domain.Models.ResponseModel
         public int Id { get; set; }
         public string TransactionFlow { get; set; } = string.Empty;
         public int EntityId { get; set; }
+
+        public string CustomerName { get; set; }
+
         public int AccountId { get; set; }
         public string AccountName { get; set; }
         public decimal Amount { get; set; }

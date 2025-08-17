@@ -116,6 +116,9 @@ namespace Services.ServicesImpl
                 requestModel.CompanyId = _currentUserService.GetCurrentCompanyId();
                 var statement = await unitOfWork.AccountTransactionRepository.GetAccountStatement(requestModel);
                 response.Model = statement;
+
+                response.Model.FromDate = requestModel.FromDate;
+                response.Model.ToDate = requestModel.ToDate;
             }
             return response;
         }
@@ -295,7 +298,7 @@ namespace Services.ServicesImpl
             return response;
         }
 
-        public async Task<ResponseModel<bool>> RecordExpenseTransaction(string category, string party, decimal amount, int accountId)
+        public async Task<ResponseModel<bool>> RecordExpenseTransaction(string category, string party, decimal amount, int accountId, DateTime transactionDate)
         {
             var response = new ResponseModel<bool>();
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
@@ -315,7 +318,7 @@ namespace Services.ServicesImpl
                         TransactionType = TransactionType.Expense.ToString(),
                         TransactionDirection = "Credit", // Money going OUT
                         Amount = amount,
-                        TransactionDate = DateTime.Now,
+                        TransactionDate = transactionDate,
                         Category = category,
                         Party = party,
                         ReferenceType = "Expense",
@@ -344,7 +347,7 @@ namespace Services.ServicesImpl
             return response;
         }
 
-        public async Task<ResponseModel<bool>> RecordIncomeTransaction(string category, string party, decimal amount, int accountId)
+        public async Task<ResponseModel<bool>> RecordIncomeTransaction(string category, string party, decimal amount, int accountId, DateTime transactionDate)
         {
             var response = new ResponseModel<bool>();
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
@@ -364,7 +367,7 @@ namespace Services.ServicesImpl
                         TransactionType = TransactionType.Income.ToString(),
                         TransactionDirection = "Debit", // Money coming IN
                         Amount = amount,
-                        TransactionDate = DateTime.Now,
+                        TransactionDate = transactionDate,
                         Category = category,
                         Party = party,
                         ReferenceType = "Income",
