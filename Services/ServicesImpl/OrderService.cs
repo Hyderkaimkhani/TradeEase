@@ -129,7 +129,7 @@ namespace Services.ServicesImpl
                             await unitOfWork.PaymentRepository.AddPaymentAllocation(new PaymentAllocation
                             {
                                 PaymentId = payment.Id,
-                                ReferenceType = OperationType.Order.ToString(),
+                                ReferenceType = ReferenceType.Order.ToString(),
                                 ReferenceId = order.Id,
                                 AllocatedAmount = toAllocate
                             });

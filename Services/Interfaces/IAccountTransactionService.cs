@@ -8,6 +8,8 @@ namespace Services.Interfaces
     public interface IAccountTransactionService
     {
         Task<ResponseModel<AccountTransactionResponseModel>> AddTransaction(AccountTransactionAddModel requestModel);
+        Task<ResponseModel<AccountTransactionResponseModel>> RecordTransferTransaction(AccountTransactionAddModel requestModel);
+
         Task<ResponseModel<AccountTransactionResponseModel>> GetTransaction(int id);
         Task<PaginatedResponseModel<AccountTransactionResponseModel>> GetTransactions(FilterModel filterModel);
         Task<ResponseModel<AccountStatementResponseModel>> GetAccountStatement(AccountStatementRequestModel requestModel);

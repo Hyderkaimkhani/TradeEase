@@ -126,7 +126,7 @@ namespace Services.ServicesImpl
                         var paymentAllocation = new PaymentAllocation
                         {
                             PaymentId = payment.Id,
-                            ReferenceType = OperationType.Order.ToString(),
+                            ReferenceType = ReferenceType.Order.ToString(),
                             ReferenceId = order.Id,
                             AllocatedAmount = toAllocate,
                         };
@@ -186,7 +186,7 @@ namespace Services.ServicesImpl
                         var paymentAllocation = new PaymentAllocation
                         {
                             PaymentId = payment.Id,
-                            ReferenceType = OperationType.Supply.ToString(),
+                            ReferenceType = ReferenceType.Supply.ToString(),
                             ReferenceId = supply.Id,
                             AllocatedAmount = toAllocate,
                         };
@@ -249,7 +249,7 @@ namespace Services.ServicesImpl
                 // Reverse Allocations
                 foreach (var alloc in payment.PaymentAllocations)
                 {
-                    if (alloc.ReferenceType == OperationType.Order.ToString())
+                    if (alloc.ReferenceType == ReferenceType.Order.ToString())
                     {
                         var order = await unitOfWork.OrderRepository.GetOrder(alloc.ReferenceId);
                         if (order != null)
@@ -260,7 +260,7 @@ namespace Services.ServicesImpl
                                                  : PaymentStatus.Paid.ToString();
                         }
                     }
-                    else if (alloc.ReferenceType == OperationType.Supply.ToString())
+                    else if (alloc.ReferenceType == ReferenceType.Supply.ToString())
                     {
                         var supply = await unitOfWork.SupplyRepository.GetSupply(alloc.ReferenceId);
                         if (supply != null)
@@ -303,7 +303,7 @@ namespace Services.ServicesImpl
                         await unitOfWork.PaymentRepository.AddPaymentAllocation(new PaymentAllocation
                         {
                             //PaymentId = payment.Id,
-                            ReferenceType = OperationType.Order.ToString(),
+                            ReferenceType = ReferenceType.Order.ToString(),
                             ReferenceId = order.Id,
                             AllocatedAmount = toAllocate
                         });
@@ -339,7 +339,7 @@ namespace Services.ServicesImpl
                         await unitOfWork.PaymentRepository.AddPaymentAllocation(new PaymentAllocation
                         {
                             // PaymentId = payment.Id,
-                            ReferenceType = OperationType.Supply.ToString(),
+                            ReferenceType = ReferenceType.Supply.ToString(),
                             ReferenceId = supply.Id,
                             AllocatedAmount = toAllocate
                         });
@@ -389,7 +389,7 @@ namespace Services.ServicesImpl
                     var paymentModel = autoMapper.Map<PaymentResponseModel>(payment);
                     foreach (var paymentAllocation in paymentModel.PaymentAllocations)
                     {
-                        if (paymentAllocation.ReferenceType == OperationType.Order.ToString())
+                        if (paymentAllocation.ReferenceType == ReferenceType.Order.ToString())
                         {
                             var order = await unitOfWork.OrderRepository.GetOrder(paymentAllocation.ReferenceId);
                             if (order != null)
@@ -404,7 +404,7 @@ namespace Services.ServicesImpl
 
                             }
                         }
-                        else if (paymentAllocation.ReferenceType == OperationType.Supply.ToString())
+                        else if (paymentAllocation.ReferenceType == ReferenceType.Supply.ToString())
                         {
                             var supply = await unitOfWork.SupplyRepository.GetSupply(paymentAllocation.ReferenceId);
                             if (supply != null)
@@ -478,7 +478,7 @@ namespace Services.ServicesImpl
             {
                 allocatedTotal += alloc.AllocatedAmount;
 
-                if (alloc.ReferenceType == OperationType.Order.ToString())
+                if (alloc.ReferenceType == ReferenceType.Order.ToString())
                 {
                     var order = await unitOfWork.OrderRepository.GetOrder(alloc.ReferenceId);
                     if (order != null)
@@ -490,7 +490,7 @@ namespace Services.ServicesImpl
                         affectedIds.Add(order.Id);
                     }
                 }
-                else if (alloc.ReferenceType == OperationType.Supply.ToString())
+                else if (alloc.ReferenceType == ReferenceType.Supply.ToString())
                 {
                     var supply = await unitOfWork.SupplyRepository.GetSupply(alloc.ReferenceId);
                     if (supply != null)

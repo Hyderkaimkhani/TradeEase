@@ -10,7 +10,7 @@
     PaymentMethod           VARCHAR(50) NULL,    -- Cash, Bank Transfer, Mobile Payment
     Notes                   TEXT NULL,
     EntityId                INT NULL,           -- Customer/Supplier
-    ReferenceType           VARCHAR(20) NOT NULL CHECK (ReferenceType IN ('Order', 'Supply', 'Expense', 'Payment', 'Transfer','OpeningBalance')),
+    ReferenceType           VARCHAR(20) NOT NULL CHECK (ReferenceType IN ('Order', 'Supply', 'Expense','Income', 'Payment', 'Transfer','OpeningBalance')),
     ReferenceId             INT NULL,
     Category                VARCHAR(50) NULL,   -- Rent, Salary, Utilities. Bonus, Commission, etc
     Party                   VARCHAR(100) NULL,  -- Who was paid for expenses

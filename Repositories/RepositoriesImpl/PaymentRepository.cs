@@ -34,11 +34,11 @@ namespace Repositories.RepositoriesImpl
             if (filter.EntityId.HasValue)
                 query = query.Where(p => p.EntityId == filter.EntityId);
 
-            if (filter.FromDate.HasValue)
-                query = query.Where(p => p.PaymentDate >= filter.FromDate.Value);
+            if (filter.FromDateUTC.HasValue)
+                query = query.Where(p => p.PaymentDate >= filter.FromDateUTC.Value);
 
-            if (filter.ToDate.HasValue)
-                query = query.Where(p => p.PaymentDate <= filter.ToDate.Value);
+            if (filter.ToDateUTC.HasValue)
+                query = query.Where(p => p.PaymentDate <= filter.ToDateUTC.Value);
 
 
             var totalCount = await query.CountAsync();

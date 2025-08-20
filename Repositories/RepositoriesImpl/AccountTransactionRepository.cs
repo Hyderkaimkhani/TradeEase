@@ -69,7 +69,7 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<PaginatedResponseModel<AccountTransaction>> GetTransactions(FilterModel filter)
         {
-            var query = context.AccountTransaction.AsNoTracking();
+            var query = context.AccountTransaction.Where(x => x.IsActive && x.TransactionType != "Payment" && x.TransactionType != "Order" && x.TransactionType != "Supply" && x.TransactionType != "Adjustment").AsNoTracking();
 
             if (filter.EntityId.HasValue)
                 query = query.Where(a => a.EntityId == filter.EntityId);
@@ -80,11 +80,11 @@ namespace Repositories.RepositoriesImpl
             if (!string.IsNullOrEmpty(filter.TransactionType))
                 query = query.Where(b => b.TransactionType == filter.TransactionType);
 
-            if (filter.FromDate.HasValue)
-                query = query.Where(b => b.TransactionDate >= filter.FromDate.Value);
+            if (filter.FromDateUTC.HasValue)
+                query = query.Where(b => b.TransactionDate >= filter.FromDateUTC.Value);
 
-            if (filter.ToDate.HasValue)
-                query = query.Where(b => b.TransactionDate <= filter.ToDate.Value);
+            if (filter.ToDateUTC.HasValue)
+                query = query.Where(b => b.TransactionDate <= filter.ToDateUTC.Value);
 
             var totalCount = await query.CountAsync();
 
@@ -233,8 +233,8 @@ namespace Repositories.RepositoriesImpl
             // Set up parameters
             var parameters = new DynamicParameters();
             parameters.Add("@CompanyId", request.CompanyId, DbType.Int32);
-            parameters.Add("@FromDate", request.FromDate, DbType.Date);
-            parameters.Add("@ToDate", request.ToDate, DbType.Date);
+            parameters.Add("@FromDate", request.FromDateUTC, DbType.Date);
+            parameters.Add("@ToDate", request.ToDateUTC, DbType.Date);
             parameters.Add("@AccountId", request.AccountId, DbType.Int32);
             parameters.Add("@EntityId", request.EntityId, DbType.Int32);
             parameters.Add("@TransactionType", request.TransactionType, DbType.String);
@@ -275,8 +275,8 @@ namespace Repositories.RepositoriesImpl
             var parameters = new[]
             {
                 new SqlParameter("@CompanyId", request.CompanyId),
-                new SqlParameter("@FromDate", request.FromDate),
-                new SqlParameter("@ToDate", request.ToDate),
+                new SqlParameter("@FromDate", request.FromDateUTC),
+                new SqlParameter("@ToDate", request.ToDateUTC),
                 new SqlParameter("@AccountId", request.AccountId ?? (object)DBNull.Value),
                 new SqlParameter("@EntityId", request.EntityId ?? (object)DBNull.Value),
                 new SqlParameter("@TransactionType", request.TransactionType ?? (object)DBNull.Value)

@@ -41,6 +41,33 @@ namespace Services.ServicesImpl
                     return response;
                 }
 
+                switch (requestModel.TransactionType)
+                {
+
+                    case "Expense":
+                        if (account.Type == AccountType.Receivable.ToString() || account.Type == AccountType.Payable.ToString())
+                        {
+                            response.IsError = true;
+                            response.Message = "Account not found";
+                            return response;
+                        }
+
+                        requestModel.TransactionDirection = TransactionDirection.Credit.ToString();
+                        requestModel.ReferenceType = requestModel.TransactionType;
+                        break;
+
+                    case "Income":
+                        if (account.Type == AccountType.Receivable.ToString() || account.Type == AccountType.Payable.ToString())
+                        {
+                            response.IsError = true;
+                            response.Message = "Account not found";
+                            return response;
+                        }
+                        requestModel.TransactionDirection = TransactionDirection.Debit.ToString();
+                        requestModel.ReferenceType = requestModel.TransactionType;
+                        break;
+
+                }
                 var transaction = autoMapper.Map<AccountTransaction>(requestModel);
 
                 var addedTransaction = await unitOfWork.AccountTransactionRepository.AddTransaction(transaction);
@@ -63,7 +90,76 @@ namespace Services.ServicesImpl
             return response;
         }
 
-        
+        public async Task<ResponseModel<AccountTransactionResponseModel>> RecordTransferTransaction(AccountTransactionAddModel requestModel)
+        {
+            var response = new ResponseModel<AccountTransactionResponseModel>();
+
+            using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
+            {
+                // Validate account exists
+                var account = await unitOfWork.AccountRepository.GetAccount(requestModel.AccountId);
+                if (account == null || account.Type == AccountType.Receivable.ToString() || account.Type == AccountType.Payable.ToString())
+                {
+                    response.IsError = true;
+                    response.Message = "Account not found";
+                    return response;
+                }
+
+                if (!requestModel.ToAccountId.HasValue)
+                {
+                    response.IsError = true;
+                    response.Message = "Destination account (ToAccountId) is required for transfer";
+                    return response;
+                }
+
+                if (requestModel.ToAccountId == requestModel.AccountId)
+                {
+                    response.IsError = true;
+                    response.Message = "Source and Destination Account could not be same";
+                    return response;
+                }
+
+                var toAccount = await unitOfWork.AccountRepository.GetAccount(requestModel.ToAccountId.Value);
+                if (toAccount == null || toAccount.Type == AccountType.Receivable.ToString() || toAccount.Type == AccountType.Payable.ToString())
+                {
+                    response.IsError = true;
+                    response.Message = "Destination account not found";
+                    return response;
+                }
+
+                var sourcetransaction = autoMapper.Map<AccountTransaction>(requestModel);
+                sourcetransaction.TransactionDirection = TransactionDirection.Credit.ToString();
+                sourcetransaction.ReferenceType = sourcetransaction.TransactionType;
+
+                var addedTransaction = await unitOfWork.AccountTransactionRepository.AddTransaction(sourcetransaction);
+                UpdateAccountBalance(account, sourcetransaction);
+
+
+                var destinationtransaction = autoMapper.Map<AccountTransaction>(requestModel);
+                destinationtransaction.TransactionDirection = TransactionDirection.Debit.ToString();
+                destinationtransaction.ReferenceType = destinationtransaction.TransactionType;
+                destinationtransaction.AccountId = requestModel.ToAccountId.Value;
+                destinationtransaction.ToAccountId = requestModel.AccountId;
+                await unitOfWork.AccountTransactionRepository.AddTransaction(destinationtransaction);
+                UpdateAccountBalance(toAccount, destinationtransaction);
+
+                if (await unitOfWork.SaveChangesAsync())
+                {
+                    var transactionResponse = autoMapper.Map<AccountTransactionResponseModel>(addedTransaction);
+                    response.Model = transactionResponse;
+                    response.Message = "Transaction added successfully";
+                }
+                else
+                {
+                    response.IsError = true;
+                    response.Message = "Failed to save transaction";
+
+                }
+            }
+            return response;
+        }
+
+
         public async Task<ResponseModel<AccountTransactionResponseModel>> GetTransaction(int id)
         {
             var response = new ResponseModel<AccountTransactionResponseModel>();
@@ -113,12 +209,15 @@ namespace Services.ServicesImpl
 
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
+                if (string.IsNullOrEmpty(requestModel.TransactionType))
+                    requestModel.TransactionType = null;
+
                 requestModel.CompanyId = _currentUserService.GetCurrentCompanyId();
                 var statement = await unitOfWork.AccountTransactionRepository.GetAccountStatement(requestModel);
                 response.Model = statement;
 
-                response.Model.FromDate = requestModel.FromDate;
-                response.Model.ToDate = requestModel.ToDate;
+                response.Model.FromDate = requestModel.FromDateUTC;
+                response.Model.ToDate = requestModel.ToDateUTC;
             }
             return response;
         }
@@ -130,7 +229,7 @@ namespace Services.ServicesImpl
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var transaction = await unitOfWork.AccountTransactionRepository.GetTransaction(id);
-                if (transaction == null)
+                if (transaction == null || transaction.TransactionType == TransactionType.Order.ToString() || transaction.TransactionType == TransactionType.Supply.ToString())
                 {
                     response.IsError = true;
                     response.Message = "Transaction not found";

@@ -15,7 +15,10 @@ namespace Domain.Models.RequestModel
         
         [Required]
         public DateTime ToDate { get; set; } = DateTime.UtcNow;
-        
+
+        public DateTime FromDateUTC => FromDate.Date;
+        public DateTime ToDateUTC => ToDate.Date.AddDays(1).AddTicks(-1);
+
         public int? EntityId { get; set; } // Optional: Filter by customer/supplier
         
         public string? TransactionType { get; set; } // Optional: Filter by transaction type
@@ -25,5 +28,6 @@ namespace Domain.Models.RequestModel
             FromDate = DateTime.Today.AddMonths(-1);
             ToDate = DateTime.Today;
         }
+
     }
 } 

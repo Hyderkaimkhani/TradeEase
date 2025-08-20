@@ -54,11 +54,11 @@ namespace Repositories.RepositoriesImpl
             if (filter.EntityId.HasValue)
                 query = query.Where(b => b.EntityId == filter.EntityId);
 
-            if (filter.FromDate.HasValue)
-                query = query.Where(b => b.FromDate >= filter.FromDate.Value);
+            if (filter.FromDateUTC.HasValue)
+                query = query.Where(b => b.FromDate >= filter.FromDateUTC.Value);
 
-            if (filter.ToDate.HasValue)
-                query = query.Where(b => b.ToDate <= filter.ToDate.Value);
+            if (filter.ToDateUTC.HasValue)
+                query = query.Where(b => b.ToDate <= filter.ToDateUTC.Value);
 
             if (!string.IsNullOrEmpty(filter.ReferenceNumber))
                 query = query.Where(b => b.BillNumber == filter.ReferenceNumber);
