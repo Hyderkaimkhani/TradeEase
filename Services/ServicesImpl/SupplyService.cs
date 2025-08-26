@@ -313,13 +313,13 @@ namespace Services.ServicesImpl
             }
         }
 
-        public async Task<ResponseModel<List<SupplyResponseModel>>> GetUnassignedSupplies(int? truckId)
+        public async Task<ResponseModel<List<SupplyResponseModel>>> GetUnassignedSupplies(string? truckNumber)
         {
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
                 var response = new ResponseModel<List<SupplyResponseModel>>();
 
-                var supplies = await unitOfWork.SupplyRepository.GetUnAssignedSupplies(truckId);
+                var supplies = await unitOfWork.SupplyRepository.GetUnAssignedSupplies(truckNumber);
 
                 if (supplies == null || supplies.Count < 1)
                 {

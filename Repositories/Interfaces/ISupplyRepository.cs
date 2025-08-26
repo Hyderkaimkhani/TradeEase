@@ -15,6 +15,8 @@ namespace Repositories.Interfaces
 
         Task<List<Supply>> GetUnAssignedSupplies(int? truckId);
 
+        Task<List<Supply>> GetUnAssignedSupplies(string? truckNumber = null);
+
         Task<PaginatedResponseModel<Supply>> GetSupplies(int page, int pageSize, int? fruitId, int? supplierId);
 
         Task<List<Supply>> GetUnpaidSupplies(int? supplierId);

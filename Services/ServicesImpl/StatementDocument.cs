@@ -56,30 +56,39 @@ public class StatementDocument : IDocument
 
             page.Content().Column(col =>
             {
+                col.Spacing(5); // <-- adds uniform spacing between all col.Item()
                 col.Item().Text(model.StatementTitle).FontSize(16).Bold().Underline();
-                col.Item().Text($"Entity: {model.EntityName}");
+                col.Item().Text($"Customer: {model.EntityName}");
                 col.Item().Text($"From: {model.FromDate:yyyy-MM-dd}  To: {model.ToDate:yyyy-MM-dd}");
                 col.Item().Text($"Opening Balance: {model.OpeningBalance.ToString("C0", culture)}");
-                col.Item().Text($"Closing Balance: {model.ClosingBalance:C}");
+                col.Item().Text($"Closing Balance: {model.ClosingBalance.ToString("N0")}").FontColor(model.ClosingBalance < 0 ? Colors.Green.Medium : Colors.Red.Medium);
 
+                // Add some space
+                col.Spacing(10); // adds 10px gap between all column items
                 col.Item().LineHorizontal(1);
+                col.Spacing(10); // adds 10px gap between all column items
+                // Add some space
 
                 col.Item().Table(table =>
                 {
                     table.ColumnsDefinition(cols =>
                     {
-                        cols.ConstantColumn(100); // Date
-                        cols.RelativeColumn();    // Ref
-                        cols.ConstantColumn(100); // Debit
-                        cols.ConstantColumn(100); // Credit
-                        cols.ConstantColumn(100); // Balance
+                        cols.RelativeColumn(); // Date
+                        cols.RelativeColumn();    // Transaction Type
+                        cols.RelativeColumn(); // Quantity 
+                        cols.RelativeColumn(); // Price
+                        cols.RelativeColumn(); // Debit
+                        cols.RelativeColumn(); // Credit
+                        cols.RelativeColumn(); // Balance
                     });
 
                     // Table Header
                     table.Header(header =>
                     {
                         header.Cell().Text("Date").Bold();
-                        header.Cell().Text("Reference").Bold();
+                        header.Cell().Text("Transaction").Bold();
+                        header.Cell().Text("Quantity").Bold();
+                        header.Cell().Text("Price").Bold();
                         header.Cell().Text("Debit").Bold();
                         header.Cell().Text("Credit").Bold();
                         header.Cell().Text("Balance").Bold();
@@ -88,15 +97,17 @@ public class StatementDocument : IDocument
                     // Transactions
                     foreach (var tx in model.Transactions)
                     {
+                        col.Spacing(5);
                         table.Cell().Text(tx.TransactionDate.ToString("yyyy-MM-dd"));
-                        table.Cell().Text($"{tx.ReferenceType} #{tx.ReferenceId}");
-
+                        table.Cell().Text($"{tx.TransactionType}");
+                        table.Cell().Text($"{tx.Quantity}");
+                        table.Cell().Text($"{tx.Price}");
                         table.Cell().Text(tx.TransactionDirection == "Debit" ? tx.SignedAmount.ToString("N0") : "");
-                        table.Cell().Text(tx.TransactionDirection == "Credit" ? tx.SignedAmount.ToString("C") : "");
+                        table.Cell().Text(tx.TransactionDirection == "Credit" ? tx.SignedAmount.ToString("N0") : "");
                         //table.Cell().Text(tx.RunningBalance.ToString("C"));
                         var balance = tx.RunningBalance;
-                        table.Cell().Text(balance.ToString("C0", culture))
-                            .FontColor(balance < 0 ? Colors.Red.Medium : Colors.Black);
+                        table.Cell().Text(balance.ToString("N0", culture));
+                            //.FontColor(balance < 0 ? Colors.Green.Medium : Colors.Black);
                     }
                 });
             });

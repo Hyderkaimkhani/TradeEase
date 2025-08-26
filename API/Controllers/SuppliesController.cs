@@ -75,5 +75,12 @@ namespace API.Controllers
 
             return Ok(response);
         }
+
+        [HttpGet("Unassigned")]
+        public async Task<IActionResult> GetUnAssignedSupplies([FromQuery] string? truckNumber)
+        {
+            var result = await supplyService.GetUnassignedSupplies(truckNumber);
+            return Ok(result);
+        }
     }
 }

@@ -12,13 +12,13 @@ namespace Domain.Models.ResponseModel
         public decimal OpeningBalance { get; set; }
         public decimal ClosingBalance { get; set; }
         public string StatementTitle { get; set; } = string.Empty;
-        public List<AccountTransactionResponseModel> Transactions { get; set; }
+        public List<TransactionResponseModel> Transactions { get; set; }
         
         public AccountStatementResponseModel()
         {
             AccountName = string.Empty;
             AccountType = string.Empty;
-            Transactions = new List<AccountTransactionResponseModel>();
+            Transactions = new List<TransactionResponseModel>();
         }
     }
 
@@ -26,6 +26,6 @@ namespace Domain.Models.ResponseModel
     {
         public decimal OpeningBalance { get; set; }
         public decimal ClosingBalance { get; set; }
-        public string StatementTitle { get; set; }
+        public string StatementTitle { get; set; } = string.Empty;
     }
 } 

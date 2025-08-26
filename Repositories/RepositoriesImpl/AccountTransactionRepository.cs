@@ -246,7 +246,7 @@ namespace Repositories.RepositoriesImpl
                 commandType: CommandType.StoredProcedure))
             {
                 // First result set: transactions
-                var transactions = (await multi.ReadAsync<AccountTransactionResponseModel>()).ToList();
+                var transactions = (await multi.ReadAsync<TransactionResponseModel>()).ToList();
                 result.Transactions = transactions;
 
                 // Second result set: metadata
@@ -283,7 +283,7 @@ namespace Repositories.RepositoriesImpl
             };
 
             // Execute the stored procedure for transactions
-            var transactions = await context.Set<AccountTransactionResponseModel>()
+            var transactions = await context.Set<TransactionResponseModel>()
                 .FromSqlRaw("EXEC sp_GetAccountStatement @CompanyId, @FromDate, @ToDate, @AccountId, @EntityId, @TransactionType", parameters)
                 .ToListAsync();
 

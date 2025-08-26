@@ -36,7 +36,7 @@ namespace Domain.AutoMapperProfiles
 
             CreateMap<Supply, SupplyResponseModel>()
                 .ForMember(dest => dest.FruitName, opt => opt.MapFrom(src => src.Fruit.Name))
-                .ForMember(dest => dest.TruckNumber, opt => opt.MapFrom(src => src.Truck.TruckNumber))
+                //.ForMember(dest => dest.TruckNumber, opt => opt.MapFrom(src => src.Truck.TruckNumber))
                 .ForMember(dest => dest.SupplierName, opt => opt.MapFrom(src => src.Supplier.Name));
 
             CreateMap<OrderAddModel, Order>();

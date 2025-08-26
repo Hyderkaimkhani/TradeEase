@@ -17,5 +17,7 @@ namespace Services.Interfaces
         Task<ResponseModel<SupplyResponseModel>> UpdateSupply(SupplyUpdateModel requestModel);
 
         Task<ResponseModel<bool>> DeleteSupply(int id);
+
+        Task<ResponseModel<List<SupplyResponseModel>>> GetUnassignedSupplies(string? truckNumber);
     }
 }

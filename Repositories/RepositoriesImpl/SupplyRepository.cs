@@ -56,8 +56,23 @@ namespace Repositories.RepositoriesImpl
                .Where(x => x.IsActive == true && x.TruckAssignmentId == null);
 
             if (truckId.HasValue)
-                query = query.Where(x=>x.TruckId == truckId);
-            
+                query = query.Where(x => x.TruckId == truckId);
+
+            var supplies = await query.OrderByDescending(s => s.SupplyDate).ToListAsync();
+
+            return supplies;
+        }
+
+        public async Task<List<Supply>> GetUnAssignedSupplies(string? truckNumber = null)
+        {
+            var query = _context.Set<Supply>()
+               .Where(x => x.IsActive == true && x.TruckAssignmentId == null);
+
+            if (!string.IsNullOrEmpty(truckNumber))
+                query = query.Where(x => x.TruckNumber == truckNumber);
+
+            query = query.AsNoTracking().Include(x => x.Supplier);
+
             var supplies = await query.OrderByDescending(s => s.SupplyDate).ToListAsync();
 
             return supplies;
@@ -106,7 +121,7 @@ namespace Repositories.RepositoriesImpl
 
         public async Task<Supply?> GetSupply(int id)
         {
-            var supply = await _context.Set<Supply>().Include(x=>x.Truck).Include(x=>x.Fruit).FirstOrDefaultAsync(x => x.Id == id);
+            var supply = await _context.Set<Supply>().Include(x => x.Truck).Include(x => x.Fruit).FirstOrDefaultAsync(x => x.Id == id);
             return supply;
         }
 
@@ -131,7 +146,7 @@ namespace Repositories.RepositoriesImpl
                                 supply.SupplierId == customerId &&
                                 supply.SupplyDate >= from &&
                                 supply.SupplyDate <= to &&
-                                supply.PaymentStatus != PaymentStatus.Paid.ToString() )
+                                supply.PaymentStatus != PaymentStatus.Paid.ToString())
                 //&&
                 //                !_context.Set<BillDetail>().Any(bd =>bd.SupplyId == supply.Id))
                 .ToListAsync();

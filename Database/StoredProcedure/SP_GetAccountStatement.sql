@@ -93,12 +93,30 @@ BEGIN
             t.ToAccountId,
             ta.Name AS ToAccountName,
             t.IsActive,
-            t.CreatedDate,
-            ROW_NUMBER() OVER (ORDER BY t.TransactionDate, t.Id) AS RowNum
+            t.CreatedDate,         
+            -- New fields for Quantity/Price/TotalPrice
+            CASE 
+                WHEN t.ReferenceType = 'Order' THEN o.Quantity
+                WHEN t.ReferenceType = 'Supply' THEN s.Quantity
+            END AS Quantity,
+
+            CASE 
+                WHEN t.ReferenceType = 'Order' THEN o.SellingPrice
+                WHEN t.ReferenceType = 'Supply' THEN s.PurchasePrice
+            END AS Price,
+
+            CASE 
+                WHEN t.ReferenceType = 'Order' THEN o.TotalSellingPrice
+                WHEN t.ReferenceType = 'Supply' THEN s.TotalPrice
+            END AS TotalPrice,		   	   
+
+ROW_NUMBER() OVER (ORDER BY t.TransactionDate, t.Id) AS RowNum 
         FROM AccountTransaction t
         INNER JOIN Account a ON a.Id = t.AccountId
         LEFT JOIN Account ta ON t.ToAccountId = ta.Id
         LEFT JOIN Customer c ON t.EntityId = c.Id
+        LEFT JOIN [Order] o ON t.ReferenceType = 'Order' AND t.ReferenceId = o.Id
+        LEFT JOIN [Supply] s ON t.ReferenceType = 'Supply' AND t.ReferenceId = s.Id
         WHERE 
             t.CompanyId = @CompanyId
             AND t.IsActive = 1
@@ -144,6 +162,9 @@ BEGIN
         ToAccountName,
         IsActive,
         CreatedDate,
+        Quantity,
+        Price,
+        TotalPrice,
         RunningBalance
     FROM RunningBalances
     ORDER BY TransactionDate, Id;
