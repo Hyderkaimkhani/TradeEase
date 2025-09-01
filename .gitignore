@@ -362,3 +362,5 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /API/Properties/ServiceDependencies/TradeEaseAPI - Zip Deploy/profile.arm.json
+/API/Properties
+/API/.config/dotnet-tools.json

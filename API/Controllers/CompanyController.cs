@@ -16,8 +16,8 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddCompany([FromBody] CompanyAddRequestModel model)
-        {
+        public async Task<IActionResult> AddCompany([FromForm] CompanyAddRequestModel model)
+       {
             var result = await companyService.AddCompany(model);
             return result.IsError ? BadRequest(result) : Ok(result);
         }

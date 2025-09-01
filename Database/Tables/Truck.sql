@@ -11,5 +11,5 @@
     [CreatedDate]  DATETIME       NOT NULL DEFAULT GetDate(),
     [UpdatedBy]    NVARCHAR (100) NULL,
     [UpdatedDate]  DATETIME       NOT NULL DEFAULT GetDate(),
-    CONSTRAINT [FK_Supply_Company] FOREIGN KEY ([CompanyId]) REFERENCES [dbo].[Company] ([Id])
+    CONSTRAINT [FK_Truck_Company] FOREIGN KEY ([CompanyId]) REFERENCES [dbo].[Company] ([Id])
 );

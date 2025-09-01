@@ -46,6 +46,7 @@ namespace Services.ServicesImpl
                 }
     
                 var company = mapper.Map<Company>(model);
+                company.Logo = logoBytes;
                 company.Code = Utilities.GenerateRandomNumberULID();
                 company.MaxUsers = 5;
                 company.CurrencySymbol = "Rs";

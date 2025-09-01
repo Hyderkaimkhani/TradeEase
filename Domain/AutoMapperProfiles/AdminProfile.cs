@@ -10,7 +10,10 @@ namespace Domain.AutoMapperProfiles
     {
         public AdminProfile()
         {
-            CreateMap<CompanyAddRequestModel, Company>();
+            CreateMap<CompanyAddRequestModel, Company>()
+                .ForMember(dest => dest.Logo, opt => opt.Ignore());
+
+
             CreateMap<CompanyUpdateRequestModel, Company>();
             CreateMap<Company, CompanyResponseModel>();
 
