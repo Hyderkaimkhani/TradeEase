@@ -6,6 +6,7 @@ namespace Repositories.Interfaces
     {
         Task<Company> AddCompany(Company entity);
         Task<Company?> GetCompany(int id);
+        Task<Company?> GetCompanyByName(string Name);
         Task<List<Company>> GetAllCompanies();
     }
 }

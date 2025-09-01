@@ -67,7 +67,7 @@ namespace API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest("One or more required parameters not passed.");
 
-            var response = await _accountTransactionService.GetAccountStatement(requestModel);
+            var response = await _accountTransactionService.GetAccountStatement(requestModel, true);           
             var pdf = new StatementDocument(response.Model).GeneratePdf();
 
             return File(pdf, "application/pdf", "Statement.pdf");

@@ -12,7 +12,7 @@ namespace Services.Interfaces
 
         Task<ResponseModel<AccountTransactionResponseModel>> GetTransaction(int id);
         Task<PaginatedResponseModel<AccountTransactionResponseModel>> GetTransactions(FilterModel filterModel);
-        Task<ResponseModel<AccountStatementResponseModel>> GetAccountStatement(AccountStatementRequestModel requestModel);
+        Task<ResponseModel<AccountStatementResponseModel>> GetAccountStatement(AccountStatementRequestModel requestModel, bool isExport = false);
         Task<ResponseModel<bool>> DeleteTransaction(int id);
 
         // Service methods to be called from other services

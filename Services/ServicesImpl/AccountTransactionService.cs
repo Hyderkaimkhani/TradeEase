@@ -203,9 +203,10 @@ namespace Services.ServicesImpl
             return response;
         }
 
-        public async Task<ResponseModel<AccountStatementResponseModel>> GetAccountStatement(AccountStatementRequestModel requestModel)
+        public async Task<ResponseModel<AccountStatementResponseModel>> GetAccountStatement(AccountStatementRequestModel requestModel, bool isExport)
         {
             var response = new ResponseModel<AccountStatementResponseModel>();
+            response.Model = new AccountStatementResponseModel();
 
             using (var unitOfWork = unitOfWorkFactory.CreateUnitOfWork())
             {
@@ -213,11 +214,23 @@ namespace Services.ServicesImpl
                     requestModel.TransactionType = null;
 
                 requestModel.CompanyId = _currentUserService.GetCurrentCompanyId();
+                var company = new Company();
+                if (isExport)
+                {
+                    company = await unitOfWork.CompanyRepository.GetCompany(requestModel.CompanyId);
+
+                }
                 var statement = await unitOfWork.AccountTransactionRepository.GetAccountStatement(requestModel);
                 response.Model = statement;
 
                 response.Model.FromDate = requestModel.FromDateUTC;
                 response.Model.ToDate = requestModel.ToDateUTC;
+
+                if (company != null)
+                {
+                    response.Model.CompanyName = company.Name;
+                    response.Model.CompanyLogo = company.Logo;
+                }
             }
             return response;
         }

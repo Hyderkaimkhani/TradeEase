@@ -12,6 +12,9 @@ namespace Domain.Models.ResponseModel
         public decimal OpeningBalance { get; set; }
         public decimal ClosingBalance { get; set; }
         public string StatementTitle { get; set; } = string.Empty;
+        public string CompanyName { get; set; }
+        public byte[]? CompanyLogo { get; set; }
+
         public List<TransactionResponseModel> Transactions { get; set; }
         
         public AccountStatementResponseModel()

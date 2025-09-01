@@ -5,9 +5,9 @@ using Domain.Models;
 using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
 using Microsoft.AspNetCore.Http;
-using Org.BouncyCastle.Asn1.Ocsp;
 using Repositories.Interfaces;
 using Services.Interfaces;
+using System.Drawing;
 
 namespace Services.ServicesImpl
 {
@@ -41,10 +41,9 @@ namespace Services.ServicesImpl
                         response.IsError = true;
                         response.Message = "Logo size exceeds the maximum limit of 1 MB.";
                         return response;
-                    }                     
-                    logoBytes = memoryStream.ToArray();
+                    }
+                    logoBytes = Utilities.ResizeImage(memoryStream.ToArray(), 300, 100);
                 }
-    
                 var company = mapper.Map<Company>(model);
                 company.Logo = logoBytes;
                 company.Code = Utilities.GenerateRandomNumberULID();
@@ -145,5 +144,6 @@ namespace Services.ServicesImpl
             await file.CopyToAsync(memoryStream);
             return memoryStream.ToArray();
         }
+
     }
 }

@@ -1,4 +1,5 @@
 ﻿using NUlid;
+using System.Drawing;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -173,6 +174,27 @@ namespace Common
             var datePart = DateTime.UtcNow.ToString("yyyyMMdd");
             var randomPart = Guid.NewGuid().ToString("N").Substring(0, 4).ToUpper(); // 4 chars from GUID
             return $"{datePart}-{randomPart}";
+        }
+
+        public static byte[] ResizeImage(byte[] imageBytes, int maxWidth, int maxHeight)
+        {
+            using var inputStream = new MemoryStream(imageBytes);
+            using var image = Image.FromStream(inputStream);
+
+            var ratioX = (double)maxWidth / image.Width;
+            var ratioY = (double)maxHeight / image.Height;
+            var ratio = Math.Min(ratioX, ratioY);
+
+            var newWidth = (int)(image.Width * ratio);
+            var newHeight = (int)(image.Height * ratio);
+
+            using var newImage = new Bitmap(newWidth, newHeight);
+            using var graphics = Graphics.FromImage(newImage);
+            graphics.DrawImage(image, 0, 0, newWidth, newHeight);
+
+            using var outputStream = new MemoryStream();
+            newImage.Save(outputStream, System.Drawing.Imaging.ImageFormat.Png);
+            return outputStream.ToArray();
         }
 
     }

@@ -25,6 +25,12 @@ namespace Repositories.RepositoriesImpl
             return company;
         }
 
+        public async Task<Company?> GetCompanyByName(string Name)
+        {
+            var company = await _context.Company.FirstOrDefaultAsync(c => c.Name == Name && c.IsActive);
+            return company;
+        }
+
         public async Task<List<Company>> GetAllCompanies()
         {
             return await _context.Company.Where(c => c.IsActive).ToListAsync();
