@@ -91,8 +91,8 @@ namespace Services.ServicesImpl
                             await unitOfWork.PaymentRepository.AddPaymentAllocation(new PaymentAllocation
                             {
                                 PaymentId = payment.Id,
-                                ReferenceType = ReferenceType.Order.ToString(),
-                                ReferenceId = supply.Id,
+                                ReferenceType = ReferenceType.Supply.ToString(),
+                                ReferenceId = addedSupply.Id,
                                 AllocatedAmount = toAllocate
                             });
 

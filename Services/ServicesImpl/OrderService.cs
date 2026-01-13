@@ -130,7 +130,7 @@ namespace Services.ServicesImpl
                             {
                                 PaymentId = payment.Id,
                                 ReferenceType = ReferenceType.Order.ToString(),
-                                ReferenceId = order.Id,
+                                ReferenceId = addedOrder.Id,
                                 AllocatedAmount = toAllocate
                             });
 
