@@ -1,27 +1,26 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Models.RequestModel
 {
     public class CustomerAddModel
     {
-        public int Id { get; set; }
-
         [Required, MaxLength(100)]
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
 
         [Required, MaxLength(20)]
-        public string Phone { get; set; }
+        public string Phone { get; set; } = string.Empty;
 
         [MaxLength(100)]
-        public string City { get; set; }
+        public string City { get; set; } = string.Empty;
 
-        [MaxLength(255)]
+        [MaxLength(100)]
         public string? Address { get; set; }
 
-        //[MaxLength(50)]
-        //public string PaymentTerms { get; set; }
+        [MaxLength(50)]
+        public string? PaymentTerms { get; set; } = "Cash";
 
-        public decimal TotalCredit { get; set; } = 0;
+        //public decimal TotalCredit { get; set; } = 0;
 
         public decimal? CreditBalance { get; set; } = 0;
     }

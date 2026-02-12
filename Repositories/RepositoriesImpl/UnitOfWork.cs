@@ -1,21 +1,34 @@
-﻿using Domain.Entities;
+﻿using Common.Interfaces;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Repositories.Helpers;
 using Repositories.Interfaces;
+using System.ComponentModel.Design;
 using System.Reflection;
 
 namespace Repositories.RepositoriesImpl
 {
     public class UnitOfWork : IUnitOfWork
     {
-        private IUserRepository _userRepository;
-        private ITokenRepository _tokenRepository;
-        private IAdminRepository _adminRepository;
+        private IUserRepository? _userRepository;
+        private ITokenRepository? _tokenRepository;
+        private IAdminRepository? _adminRepository;
+        private IOrderRepository? _orderRepository;
+        private ISupplyRepository? _supplyRepository;
+        private IPaymentRepository? _paymentRepository;
+        private IBillRepository? _billRepository;
+        private ICompanyRepository? _companyRepository;
+        private IAccountRepository? _accountRepository; 
+        private IAccountTransactionRepository? _accountTransactionRepository;
 
         private readonly Context.Context _context;
+        private readonly ICurrentUserService _currentUserService;
 
-        public UnitOfWork(Context.Context context)
+
+        public UnitOfWork(Context.Context context, ICurrentUserService currentUserService)
         {
             _context = context;
+            _currentUserService = currentUserService;
         }
 
         public IUserRepository UserRepository
@@ -57,6 +70,93 @@ namespace Repositories.RepositoriesImpl
             }
         }
 
+        public ISupplyRepository SupplyRepository
+        {
+            get
+            {
+                if (_supplyRepository == null)
+                {
+                    _supplyRepository = new SupplyRepository(_context);
+                }
+
+                return _supplyRepository;
+            }
+        }
+
+        public IOrderRepository OrderRepository
+        {
+            get
+            {
+                if (_orderRepository == null)
+                {
+                    _orderRepository = new OrderRepository(_context);
+                }
+
+                return _orderRepository;
+            }
+        }
+
+        public IPaymentRepository PaymentRepository
+        {
+            get
+            {
+                if (_paymentRepository == null)
+                {
+                    _paymentRepository = new PaymentRepository(_context);
+                }
+
+                return _paymentRepository;
+            }
+        }
+
+        public IBillRepository BillRepository
+        {
+            get
+            {
+                if (_billRepository == null)
+                {
+                    _billRepository = new BillRepository(_context);
+                }
+                return _billRepository;
+            }
+        }
+
+        public ICompanyRepository CompanyRepository
+        {
+            get
+            {
+                if (_companyRepository == null)
+                {
+                    _companyRepository = new CompanyRepository(_context);
+                }
+                return _companyRepository;
+            }
+        }
+
+        public IAccountRepository AccountRepository
+        {
+            get
+            {
+                if (_accountRepository == null)
+                {
+                    _accountRepository = new AccountRepository(_context);
+                }
+                return _accountRepository;
+            }
+        }
+        
+        public IAccountTransactionRepository AccountTransactionRepository
+        {
+            get
+            {
+                if (_accountTransactionRepository == null)
+                {
+                    _accountTransactionRepository = new AccountTransactionRepository(_context);
+                }
+                return _accountTransactionRepository;
+            }
+        }
+
         public void DiscardChanges()
         {
             foreach (var Entry in _context.ChangeTracker.Entries())
@@ -80,19 +180,37 @@ namespace Repositories.RepositoriesImpl
                             .Where(e => e.Entity is AuditableEntity &&
                                   (e.State == EntityState.Added || e.State == EntityState.Modified));
 
+                    string currentUser = _currentUserService.GetCurrentUsername();
                     foreach (var entry in entries)
                     {
                         var auditable = (AuditableEntity)entry.Entity;
 
                         if (entry.State == EntityState.Added)
                         {
+                            auditable.CompanyId = _currentUserService.GetCurrentCompanyId();
                             auditable.CreatedDate = DateTime.UtcNow;
+                            auditable.CreatedBy = currentUser;
+
                         }
 
                         auditable.UpdatedDate = DateTime.UtcNow;
+                        auditable.UpdatedBy = currentUser;
+
                     }
 
+                    var auditLogs = AuditHelper.CreateAuditLogs(
+                        _context.ChangeTracker,
+                        () => _currentUserService.GetCurrentUsername()
+                    );
                     int count = await _context.SaveChangesAsync();
+                    // 🔹 Generate audit logs
+
+
+                    // 🔹 Add audit logs BEFORE saving
+                    if (auditLogs.Any())
+                        _context.Set<AuditLog>().AddRange(auditLogs);
+
+                    await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {

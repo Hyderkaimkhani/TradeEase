@@ -3,13 +3,10 @@ using Common;
 using Domain.Entities;
 using Domain.Models;
 using Domain.Models.RequestModel;
+using Microsoft.Extensions.Configuration;
 using Repositories.Interfaces;
 using Services.Interfaces;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Threading.Tasks;
 
 namespace Services.ServicesImpl
 {
@@ -53,9 +50,9 @@ namespace Services.ServicesImpl
                     user.Status = "Activated";
                     user.Password = Utilities.MD5Hash("helloworld" + _configuration.GetSection("RandomPasswordSeed").Value);
                     user.CreatedBy = "";//await _tokenService.GetClaimFromToken(JwtRegisteredClaimNames.Sub);
-                    user.CreatedDate = DateTime.Now;
+                    user.CreatedDate = DateTime.UtcNow;
                     user.UpdatedBy = "";//await _tokenService.GetClaimFromToken(JwtRegisteredClaimNames.Sub);
-                    user.UpdatedDate = DateTime.Now;
+                    user.UpdatedDate = DateTime.UtcNow;
                     user.Email = user.Email.ToLower();
 
 
@@ -100,7 +97,7 @@ namespace Services.ServicesImpl
                 }
                 else
                 {
-                    userEntity.LastLogin = DateTime.Now;
+                    userEntity.LastLogin = DateTime.UtcNow;
                     userEntity.TotalLogin += 1;
                     await unitOfWork.SaveChangesAsync();
 

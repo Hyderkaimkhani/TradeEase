@@ -14,7 +14,7 @@
 
         public string? PaymentTerms { get; set; }
 
-        public decimal TotalCredit { get; set; }
+        //public decimal TotalCredit { get; set; }
 
         public decimal? CreditBalance { get; set; }
 

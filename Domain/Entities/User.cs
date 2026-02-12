@@ -21,13 +21,14 @@
 
         public virtual UserRole UserRole { get; set; }
 
+        public Company Company { get; set; }
+
         public User()
         {
             FirstName = string.Empty;
             Email = string.Empty;
             Password = string.Empty;
             Status = string.Empty;
-            UserRole = new UserRole();
         }
     }
 }

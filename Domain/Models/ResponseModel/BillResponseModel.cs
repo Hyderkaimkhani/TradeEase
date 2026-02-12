@@ -1,0 +1,53 @@
+﻿namespace Domain.Models.ResponseModel
+{
+    public class BillResponseModel
+    {
+        public int Id { get; set; }
+
+        public string BillNumber { get; set; } = string.Empty;
+
+        public int EntityId { get; set; }
+
+        public string EntityName { get; set; } = string.Empty;
+
+        public DateTime? FromDate { get; set; }
+        public DateTime? ToDate { get; set; }
+        public DateTime? DueDate { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal TotalPaid { get; set; }
+        public decimal Balance { get; set; }
+        public string PaymentStatus { get; set; } = string.Empty; // 'Unpaid', 'Partial', 'Paid'
+
+        public DateTime? PaidDate { get; set; }
+
+        public DateTime BillDate { get; set; }
+
+        public string? PdfPath { get; set; }
+
+        public string? Notes { get; set; }
+
+        public bool IsActive { get; set; } = true;
+        public List<BillDetailResponseModel> BillDetails { get; set; } = new List<BillDetailResponseModel>();
+    }
+
+    public class BillDetailResponseModel
+    {
+        public int Id { get; set; }
+        public int BillId { get; set; }
+        public string ReferenceType { get; set; } = string.Empty; // 'Order' or 'Supply'
+        public int? OrderId { get; set; }
+        public int? SupplyId { get; set; }
+        public string? ReferenceNumber { get; set; }
+        public string? Description { get; set; }    // Fruit, Truck, Notes, etc.
+        public decimal? Quantity { get; set; }
+        public decimal? UnitPrice { get; set; }
+        public decimal LineTotal { get; set; }
+        public string? Unit { get; set; }
+        public DateTime RecordDate { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public string PaymentStatus { get; set; } = string.Empty;
+        public string TruckNumber { get; set; } = string.Empty;
+        public string FruitName { get; set; } = string.Empty;
+    }
+
+}

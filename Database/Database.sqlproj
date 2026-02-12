@@ -9,8 +9,7 @@
     <ProjectGuid>{25694e75-88a8-4c57-9709-6d96484dd4b1}</ProjectGuid>
     <DSP>Microsoft.Data.Tools.Schema.Sql.Sql130DatabaseSchemaProvider</DSP>
     <OutputType>Database</OutputType>
-    <RootPath>
-    </RootPath>
+    <RootPath />
     <RootNamespace>TradeEaseDb</RootNamespace>
     <AssemblyName>TradeEaseDb</AssemblyName>
     <ModelCollation>1033, CI</ModelCollation>
@@ -48,7 +47,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">11.0</VisualStudioVersion>
-    <!-- Default to the v11.0 targets path if the targets file for the current VS version is not found -->
     <SSDTExists Condition="Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\v$(VisualStudioVersion)\SSDT\Microsoft.Data.Tools.Schema.SqlTasks.targets')">True</SSDTExists>
     <VisualStudioVersion Condition="'$(SSDTExists)' == ''">11.0</VisualStudioVersion>
   </PropertyGroup>
@@ -59,6 +57,7 @@
     <Folder Include="Data" />
     <Folder Include="Tables" />
     <Folder Include="Scripts" />
+    <Folder Include="StoredProcedure" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Tables\Customer.sql" />
@@ -66,8 +65,25 @@
     <Build Include="Tables\UserAuth.sql" />
     <Build Include="Tables\UserRole.sql" />
     <None Include="Data\Data.UserRole.sql" />
+    <Build Include="Tables\AuditLog.sql" />
+    <Build Include="Tables\BillDetail.sql" />
+    <Build Include="Tables\Bill.sql" />
+    <Build Include="Tables\Company.sql" />
+    <Build Include="Tables\Account.sql" />
+    <Build Include="Tables\AccountTransaction.sql" />
+    <Build Include="StoredProcedure\SP_GetAccountStatement.sql" />
   </ItemGroup>
   <ItemGroup>
     <PostDeploy Include="Scripts\Script.PostDeployment.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Tables\Fruit.sql" />
+    <None Include="Tables\Truck.sql" />
+    <None Include="Tables\Supply.sql" />
+    <None Include="Tables\Payment.sql" />
+    <None Include="Tables\PaymentAllocation.sql" />
+    <None Include="Tables\Order.sql" />
+    <None Include="Tables\OrderSupplies.sql" />
+    <None Include="Tables\TruckAssignment.sql" />
   </ItemGroup>
 </Project>

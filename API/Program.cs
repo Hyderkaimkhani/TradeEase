@@ -15,6 +15,9 @@ using System.Text.Json;
 using Api.Middleware;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
+using Common.Interfaces;
+using Common.Services;
+using QuestPDF.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -185,6 +188,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+QuestPDF.Settings.License = LicenseType.Community;
 var app = builder.Build();
 
 app.UseMiddleware<RequestLoggingMiddleware>();
@@ -198,8 +204,6 @@ if (app.Environment.IsDevelopment())
 }
 
 
-app.MapControllers();
-
 //app.MapHealthChecks("/api-health", new HealthCheckOptions
 //{
 //    ResponseWriter = HealthReporting.WriteResponse
@@ -207,6 +211,8 @@ app.MapControllers();
 
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();

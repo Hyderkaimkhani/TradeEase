@@ -19,6 +19,13 @@ namespace Services.Config
             _services.AddTransient<IUserService, UserService>();
             _services.AddTransient<ITokenService, TokenService>();
             _services.AddTransient<IAdminService, AdminService>();
+            _services.AddTransient<ISupplyService, SupplyService>();
+            _services.AddTransient<IOrderService, OrderService>();
+            _services.AddTransient<IPaymentService, PaymentService>();
+            _services.AddTransient<IBillService, BillService>();
+            _services.AddTransient<ICompanyService, CompanyService>();
+            _services.AddTransient<IAccountService, AccountService>();
+            _services.AddTransient<IAccountTransactionService, AccountTransactionService>();
             _services.AddTransient<INotificationService, NotificationService>();
 
         }

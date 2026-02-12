@@ -1,4 +1,5 @@
-﻿using Domain.Models;
+﻿using Common;
+using Domain.Models;
 using Domain.Models.RequestModel;
 using Domain.Models.ResponseModel;
 using Microsoft.AspNetCore.Authorization;
@@ -7,7 +8,7 @@ using Services.Interfaces;
 
 namespace API.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [Authorize]
     [ApiController]
     public class AdminController : ControllerBase
@@ -27,32 +28,44 @@ namespace API.Controllers
             if (!ModelState.IsValid)
                 return BadRequest("One or more required parameters not passed.");
 
-            var response = new ResponseModel<CustomerResponseModel>();
-            if (requestModel.Id == 0)
-            {
-                response = await _adminService.AddCustomer(requestModel);
-            }
-            else
-            {
-                response = await _adminService.UpdateCustomer(requestModel);
-            }
+            var response = await _adminService.AddCustomer(requestModel);
+
+            return Ok(response);
+        }
+
+        [HttpPost("Customer/Update")]
+        public async Task<IActionResult> UpdateCustomer(CustomerUpdateModel requestModel)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("One or more required parameters not passed.");
+
+            var response = await _adminService.UpdateCustomer(requestModel);
+
             return Ok(response);
         }
 
         [HttpGet("Customer")]
         public async Task<IActionResult> GetCustomers([FromQuery] bool? isActive)
         {
-            if(isActive.HasValue)
-            {
-                return Ok(await _adminService.GetCustomers(isActive.Value));
-            }
-            else
-            {
-                return Ok(await _adminService.GetAllCustomers());
-            }
+            var response = await _adminService.GetCustomers(isActive);
+            return Ok(response);
         }
 
-       
+        [HttpGet("Customer/dropdown")]
+        public async Task<IActionResult> GetCustomersDropDown()
+        {
+            return Ok(await _adminService.GetCustomersDropDown());
+
+        }
+
+
+        [HttpGet("Entity/dropdown")]
+        public async Task<IActionResult> GetAllCustomersSuppliers()
+        {
+            return Ok(await _adminService.GetCustomersDropDown());
+
+        }
+
         [HttpGet("Customer/{id}")]
         public async Task<IActionResult> GetCustomer(int id)
         {
@@ -64,6 +77,43 @@ namespace API.Controllers
         public async Task<IActionResult> DeleteCustomer(int id)
         {
             var response = await _adminService.DeleteCustomer(id);
+            return Ok(response);
+        }
+
+        #endregion
+
+        #region Fruit
+
+        [HttpPost("Fruit")]
+        public async Task<IActionResult> AddFruit(FruitAddModel requestModel)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest("One or more required parameters not passed.");
+
+            var response = new ResponseModel<FruitResponseModel>();
+            if (requestModel.Id == 0)
+            {
+                response = await _adminService.AddFruit(requestModel);
+            }
+            else
+            {
+                response = await _adminService.UpdateFruit(requestModel);
+            }
+            return Ok(response);
+        }
+
+        [HttpGet("Fruit")]
+        public async Task<IActionResult> GetFruits()
+        {
+            return Ok(await _adminService.GetFruits());
+
+        }
+
+
+        [HttpGet("Fruit/{id}")]
+        public async Task<IActionResult> GetFruit(int id)
+        {
+            var response = await _adminService.GetFruit(id);
             return Ok(response);
         }
 
