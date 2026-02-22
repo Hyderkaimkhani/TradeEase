@@ -1,5 +1,5 @@
 ﻿using NUlid;
-using System.Drawing;
+using SkiaSharp;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -176,26 +176,50 @@ namespace Common
             return $"{datePart}-{randomPart}";
         }
 
+        //public static byte[] ResizeImage(byte[] imageBytes, int maxWidth, int maxHeight)
+        //{
+        //    using var inputStream = new MemoryStream(imageBytes);
+        //    using var image = Image.FromStream(inputStream);
+
+        //    var ratioX = (double)maxWidth / image.Width;
+        //    var ratioY = (double)maxHeight / image.Height;
+        //    var ratio = Math.Min(ratioX, ratioY);
+
+        //    var newWidth = (int)(image.Width * ratio);
+        //    var newHeight = (int)(image.Height * ratio);
+
+        //    using var newImage = new Bitmap(newWidth, newHeight);
+        //    using var graphics = Graphics.FromImage(newImage);
+        //    graphics.DrawImage(image, 0, 0, newWidth, newHeight);
+
+        //    using var outputStream = new MemoryStream();
+        //    newImage.Save(outputStream, System.Drawing.Imaging.ImageFormat.Png);
+        //    return outputStream.ToArray();
+        //}
+
         public static byte[] ResizeImage(byte[] imageBytes, int maxWidth, int maxHeight)
         {
-            using var inputStream = new MemoryStream(imageBytes);
-            using var image = Image.FromStream(inputStream);
+            using var input = new SKManagedStream(new MemoryStream(imageBytes));
+            using var original = SKBitmap.Decode(input);
 
-            var ratioX = (double)maxWidth / image.Width;
-            var ratioY = (double)maxHeight / image.Height;
+            var ratioX = (double)maxWidth / original.Width;
+            var ratioY = (double)maxHeight / original.Height;
             var ratio = Math.Min(ratioX, ratioY);
 
-            var newWidth = (int)(image.Width * ratio);
-            var newHeight = (int)(image.Height * ratio);
+            var newWidth = (int)(original.Width * ratio);
+            var newHeight = (int)(original.Height * ratio);
 
-            using var newImage = new Bitmap(newWidth, newHeight);
-            using var graphics = Graphics.FromImage(newImage);
-            graphics.DrawImage(image, 0, 0, newWidth, newHeight);
+            using var resized = new SKBitmap(newWidth, newHeight);
+            using (var canvas = new SKCanvas(resized))
+            {
+                canvas.DrawBitmap(original,
+                    new SKRect(0, 0, newWidth, newHeight),
+                    new SKPaint { FilterQuality = SKFilterQuality.High });
+            }
 
-            using var outputStream = new MemoryStream();
-            newImage.Save(outputStream, System.Drawing.Imaging.ImageFormat.Png);
-            return outputStream.ToArray();
+            using var image = SKImage.FromBitmap(resized);
+            using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+            return data.ToArray();
         }
-
     }
 }

@@ -37,7 +37,7 @@ namespace API.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateCompany([FromBody] CompanyUpdateRequestModel model)
+        public async Task<IActionResult> UpdateCompany([FromForm] CompanyUpdateRequestModel model)
         {
             var result = await companyService.UpdateCompany(model);
             return result.IsError ? NotFound(result) : Ok(result);

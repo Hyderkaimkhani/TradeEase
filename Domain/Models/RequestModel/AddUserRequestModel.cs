@@ -11,7 +11,7 @@ namespace Domain.Models.RequestModel
         public string FirstName { get; set; }
 
         [Required]
-        int CompanyId { get; set; }
+        public int CompanyId { get; set; }
         public string? LastName { get; set; }
         public string? UserName { get; set; }
 

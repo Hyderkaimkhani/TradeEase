@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Models.RequestModel
@@ -18,5 +19,7 @@ namespace Domain.Models.RequestModel
 
         [MaxLength(100)]
         public string? Email { get; set; }
+
+        public IFormFile? Logo { get; set; } // For binary uploads (multipart/form-data)
     }
 }

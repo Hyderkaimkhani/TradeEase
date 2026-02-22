@@ -7,7 +7,6 @@ using Domain.Models.ResponseModel;
 using Microsoft.AspNetCore.Http;
 using Repositories.Interfaces;
 using Services.Interfaces;
-using System.Drawing;
 
 namespace Services.ServicesImpl
 {
@@ -106,6 +105,22 @@ namespace Services.ServicesImpl
                 company.Address = model.Address;
                 company.Phone = model.Phone;
                 company.Email = model.Email;
+
+                // Handle logo update
+                if (model.Logo != null && model.Logo.Length > 0)
+                {
+                    using var memoryStream = new MemoryStream();
+                    await model.Logo.CopyToAsync(memoryStream);
+
+                    // Optional: restrict size (1 MB)
+                    if (memoryStream.Length > 1024 * 1024)
+                    {
+                        response.IsError = true;
+                        response.Message = "Logo size exceeds the maximum limit of 1 MB.";
+                        return response;
+                    }
+                    company.Logo = Utilities.ResizeImage(memoryStream.ToArray(), 300, 100);
+                }
 
                 if (await unitOfWork.SaveChangesAsync())
                 {
